@@ -1,0 +1,140 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 80vh; margin-top: 20px; margin-bottom: 40px;">
+    <div class="col-md-7 col-lg-6">
+        
+        <div class="card p-4 bg-white border-0 shadow-sm" style="border-radius: 16px;">
+            
+            <div class="text-center mb-4">
+                <h3 class="fw-bold text-dark mb-1" style="font-family: 'Georgia', serif;">Registrieren / Register</h3>
+                <p class="text-muted small">Create your secure profile on Ganesha Portal</p>
+                <hr style="border-top: 1px dashed #dee2e6; margin: 15px 0;">
+            </div>
+
+            {% if error %}
+                <div class="alert alert-danger p-2 small text-center border-0 fw-semibold mb-3" style="border-radius: 8px;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary">Vorname / First Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" name="first_name" class="form-control border-start-0 ps-0" required placeholder="John" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary">Nachname / Last Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" name="last_name" class="form-control border-start-0 ps-0" required placeholder="Doe" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold text-secondary">Telefonnummer / Primary Contact Number (Used to Login)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                                <i class="bi bi-telephone"></i>
+                            </span>
+                            <select name="country_code" class="form-select border-secondary-subtle bg-light text-dark fw-bold" style="max-width: 110px; z-index: 2; font-size: 0.9rem;">
+                                <option value="+49" selected>🇩🇪 +49</option>
+                                <option value="+91">🇮🇳 +91</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+1">🇺🇸 +1</option>
+                            </select>
+                            <input type="tel" name="phone_raw" class="form-control" required placeholder="e.g. 1761234567 or 9566960500" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
+                        </div>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+                            Select country routing prefix, then write the mobile number without leading zeros.
+                        </small>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold text-secondary">E-Mail Adresse / Email Address (Used for Verification)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="email" name="email" class="form-control border-start-0 ps-0" required placeholder="name@example.com" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold text-secondary">Adresse / Default Delivery Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0 alignment-textarea-icon" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                                <i class="bi bi-geo-alt"></i>
+                            </span>
+                            <textarea name="address" class="form-control border-start-0 ps-0" rows="2" required placeholder="Enter primary residential address details for logistics tracking..." style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold text-secondary">Passwort / Secure Passcode</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                                <i class="bi bi-shield-lock"></i>
+                            </span>
+                            <input type="password" id="registerPassword" name="password" class="form-control border-start-0 border-end-0 ps-0" required placeholder="••••••••" style="z-index: 1;">
+                            <button type="button" class="input-group-text bg-light border-start-0 text-muted" onclick="togglePasswordVisibility('registerPassword', 'regEyeIcon')" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 3; cursor: pointer;">
+                                <i id="regEyeIcon" class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <button type="submit" class="btn btn-danger w-100 mt-4 py-2.5 fw-bold text-uppercase tracking-wide shadow-sm" style="border-radius: 8px;">
+                    Registrierung abschließen / Complete Registration
+                </button>
+
+                <div class="text-center pt-3 mt-3 border-top">
+                    <span class="text-muted small">Bereits registriert? / Existing Guest?</span>
+                    <a href="{% url 'login' %}" class="text-danger small fw-bold ms-1 text-decoration-none">
+                        Einloggen / Sign In
+                    </a>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePasswordVisibility(inputId, iconId) {
+    const passwordField = document.getElementById(inputId);
+    const eyeIcon = document.getElementById(iconId);
+    
+    if (passwordField.type === "password") {
+        passwordField.type = "text";
+        eyeIcon.classList.remove("bi-eye");
+        eyeIcon.classList.add("bi-eye-slash");
+    } else {
+        passwordField.type = "password";
+        eyeIcon.classList.remove("bi-eye-slash");
+        eyeIcon.classList.add("bi-eye");
+    }
+}
+</script>
+
+<style>
+/* Adjusts icon alignment within bootstrap input groups specifically for textareas */
+.alignment-textarea-icon {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 0.75rem;
+}
+</style>
+{% endblock %}

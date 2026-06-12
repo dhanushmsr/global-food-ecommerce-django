@@ -1,0 +1,169 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ganesha - Sri-Lanka & Indien</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { 
+            background-color: #f4f6f8; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .navbar-brand-title { 
+            font-family: 'Georgia', serif; 
+            font-weight: 700; 
+            color: #dc3545 !important; /* Ganesha Accent Crimson Red */
+            font-size: 1.5rem;
+            margin-bottom: -5px;
+            display: block;
+        }
+        .navbar-brand-sub { 
+            font-size: 0.72rem; 
+            color: #6c757d; 
+            display: block; 
+            letter-spacing: 0.3px;
+            font-weight: 500;
+        }
+        .logo-img { 
+            height: 48px; 
+            width: auto; 
+            object-fit: contain; 
+            margin-right: 12px; 
+            border-radius: 6px; 
+        }
+        .card { 
+            border: none; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            border: none;
+            color: #212529 !important;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        .btn-danger { 
+            background-color: #dc3545; 
+            border: none; 
+        }
+        .btn-danger:hover { 
+            background-color: #bd2130; 
+        }
+        footer {
+            margin-top: 6rem;
+            padding: 2.5rem 0;
+            background-color: #ffffff;
+            border-top: 1px solid #dee2e6;
+        }
+        .welcome-badge {
+            background-color: #fff0f1;
+            color: #dc3545;
+            border: 1px solid #fbc4c8;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+        }
+        .lang-btn {
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white py-2 mb-4 sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'welcome' %}{% endif %}">
+                <img src="{% static 'booking/images/logo.png' %}" alt="Ganesha Logo" class="logo-img">
+                <div>
+                    <span class="navbar-brand-title">Ganesha</span>
+                    <span class="navbar-brand-sub">Sri-Lanka & Indien in Munderkingen</span>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto align-items-center">
+                    
+                    <div class="dropdown me-3">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle lang-btn px-2.5 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            🌐 {% if lang == 'de' %}Sprache{% else %}Language{% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li><a class="dropdown-menu-item dropdown-item fw-semibold small py-1.5" href="{% url 'set_language' %}?lang=en">🇬🇧 English</a></li>
+                            <li><a class="dropdown-menu-item dropdown-item fw-semibold small py-1.5" href="{% url 'set_language' %}?lang=de">🇩🇪 Deutsch</a></li>
+                        </ul>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                        <a class="nav-link me-3 fw-semibold text-dark" href="{% url 'home' %}">
+                            <i class="bi bi-egg-fried me-1"></i>{% if lang == 'de' %}Speisekarte{% else %}Menu{% endif %}
+                        </a>
+                        <a class="nav-link me-3 fw-semibold text-dark" href="{% url 'dashboard' %}">
+                            <i class="bi bi-clock-history me-1"></i>{% if lang == 'de' %}Meine Bestellungen{% else %}My Orders{% endif %}
+                        </a>
+                        
+                        {% if user.is_staff %}
+                            <a class="btn btn-warning btn-sm fw-bold px-3 me-3 shadow-sm d-inline-flex align-items-center" href="{% url 'hotel_management' %}">
+                                <i class="bi bi-shield-lock-fill me-1.5"></i>{% if lang == 'de' %}Betreiber-Cockpit{% else %}Owner Control Deck{% endif %}
+                            </a>
+                        {% else %}
+                            <a class="nav-link me-3 fw-semibold text-dark position-relative" href="{% url 'view_cart' %}">
+                                <i class="bi bi-cart3 me-1"></i>{% if lang == 'de' %}Warenkorb{% else %}Cart{% endif %}
+                            </a>
+                        {% endif %}
+                        
+                        <span class="welcome-badge me-3 d-inline-flex align-items-center shadow-sm">
+                            <i class="bi bi-person-circle me-1.5"></i>
+                            {% if lang == 'de' %}Willkommen,{% else %}Welcome,{% endif %}&nbsp;
+                            <a href="{% url 'update_profile' %}" class="text-danger fw-bold text-decoration-none transition-link" title="Click to edit profile">
+                                {{ user.first_name|default:user.username }}
+                            </a>!
+                        </span>
+                        
+                        <a class="btn btn-outline-secondary btn-sm px-3 rounded-pill fw-medium" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right me-1"></i>{% if lang == 'de' %}Abmelden{% else %}Logout{% endif %}
+                        </a>
+                    {% else %}
+                        <a class="btn btn-outline-danger btn-sm px-4 rounded-pill me-2 fw-semibold" href="{% url 'login' %}">{% if lang == 'de' %}Anmelden{% else %}Login{% endif %}</a>
+                        <a class="btn btn-danger btn-sm px-4 rounded-pill text-white shadow-sm fw-semibold" href="{% url 'register' %}">{% if lang == 'de' %}Registrieren{% else %}Register{% endif %}</a>
+                    {% endif %}
+                    
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="text-center text-muted small mt-5">
+        <div class="container">
+            <p class="mb-1" style="font-family: 'Georgia', serif; font-weight: bold; color: #343a40;">🕉️ Ganesha Restaurant</p>
+            <p class="mb-1">&copy; 2026 Ganesha Portal. {% if lang == 'de' %}Alle Rechte vorbehalten.{% else %}All Rights Reserved.{% endif %}</p>
+            <p class="mb-0 text-secondary italic">
+                {% if lang == 'de' %}
+                    Authentische Spezialitäten aus Sri Lanka und Indien direkt zu Ihnen nach Hause.
+                {% else %}
+                    Authentic specialties from Sri Lanka and India delivered directly to your home.
+                {% endif %}
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+{% extends 'booking/base.html' %}
+{% block content %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h3 class="fw-bold text-dark font-monospace mb-1">👥 Customer CRM Management Directory</h3>
+        <p class="text-muted small mb-0">Identify high-value users and dispatch exclusive reward vouchers based on spending behavior.</p>
+    </div>
+    <a href="{% url 'hotel_management' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Back to Central Cockpit</a>
+</div>
+
+<div class="card p-3 bg-white border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <form method="GET" action="{% url 'owner_user_details' %}" class="row g-3 align-items-end">
+        <div class="col-md-4 col-sm-6">
+            <label class="form-label small fw-bold text-secondary">Minimum Order Count Threshold</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted"><i class="bi bi-hash"></i></span>
+                <input type="number" name="min_orders" class="form-control" placeholder="e.g. 5" value="{{ min_orders|default:'' }}">
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+            <label class="form-label small fw-bold text-secondary">Minimum Gross Revenue Spending Range (€)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted">€</span>
+                <input type="number" step="0.01" name="min_spend" class="form-control" placeholder="e.g. 50.00" value="{{ min_spend|default:'' }}">
+            </div>
+        </div>
+        <div class="col-md-4 col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-sm btn-dark fw-semibold w-100 py-2">
+                <i class="bi bi-funnel-fill me-1"></i> Filter Customers
+            </button>
+            <a href="{% url 'owner_user_details' %}" class="btn btn-sm btn-light border fw-semibold w-100 py-2 text-center text-decoration-none">
+                Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="card p-4 bg-white shadow-sm border-0" style="border-radius: 12px;">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Login Number</th>
+                    <th>Total Orders Placed</th>
+                    <th>Total Gross Revenue Stream</th>
+                    <th>Target Exclusive Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in users %}
+                <tr>
+                    <td><b>{{ profile.user.first_name }} {{ profile.user.last_name }}</b></td>
+                    <td><span class="badge bg-primary px-3 py-1" style="border-radius: 6px;">{{ profile.phone_number }}</span></td>
+                    <td><span class="badge bg-light text-dark border">{{ profile.order_count }} Order(s)</span></td>
+                    <td class="text-danger fw-bold">€{{ profile.total_spent|default:"0.00" }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger fw-bold rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#targetedCouponModal{{ profile.user.id }}">
+                            🎁 Gift Targeted Coupon
+                        </button>
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="targetedCouponModal{{ profile.user.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-sm">
+                        <div class="modal-content" style="border-radius: 14px;">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="fw-bold text-dark">Issue Gift Voucher</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="POST" action="{% url 'add_coupon_frontend' %}">
+                                {% csrf_token %}
+                                <div class="modal-body py-3">
+                                    <p class="text-muted small mb-3">Target Guest: <b class="text-dark">{{ profile.user.first_name }}</b></p>
+                                    <input type="hidden" name="specific_user_id" value="{{ profile.user.id }}">
+                                    
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted">Voucher Code Name</label>
+                                        <input type="text" name="code" class="form-control text-uppercase" mercantile-code required placeholder="SPECIAL15">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted">Discount Factor (%)</label>
+                                        <input type="number" name="discount_percentage" class="form-control" required placeholder="15">
+                                    </div>
+                                    <div class="mb-0">
+                                        <label class="form-label small text-muted">Minimum Order Bound (€)</label>
+                                        <input type="number" step="0.01" name="min_order_amount" class="form-control" value="15.00">
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 pt-0">
+                                    <button type="submit" class="btn btn-sm btn-danger fw-bold w-100 py-2" style="border-radius: 8px;">Issue Exclusive Offer</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="bi bi-people fs-2 d-block mb-2"></i>
+                        No registered customers match the specified filtering criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

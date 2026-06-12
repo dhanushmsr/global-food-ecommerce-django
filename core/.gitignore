@@ -1,0 +1,15 @@
+# Python bytecode environment assets
+__pycache__/
+*.py[cod]
+*$py.class
+env/
+venv/
+
+# Secret global environment keys
+.env
+
+# Local active development databases
+db.sqlite3
+
+# Uploaded food item media files
+media/dishes/

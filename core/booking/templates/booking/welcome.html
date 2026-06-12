@@ -1,0 +1,81 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="row align-items-center g-5 my-2">
+    <div class="col-lg-5 text-center">
+        <div class="p-4 bg-white rounded-3 shadow-sm border border-light">
+            <img src="{% static 'booking/images/logo.png' %}" alt="Ganesha Logo" class="img-fluid mb-4 rounded" style="max-height: 240px; object-fit: contain;">
+            
+            <h1 class="fw-bold text-dark" style="font-family: 'Georgia', serif;">Ganesha</h1>
+            <p class="text-muted small px-3">Sri-Lanka & Indien in Munderkingen</p>
+            
+            <div class="d-grid gap-2 col-10 mx-auto mt-4">
+                <a href="{% url 'login' %}" class="btn btn-danger btn-lg fw-bold py-2.5 shadow-sm text-uppercase tracking-wider">Einloggen / Sign In</a>
+                <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-sm fw-semibold mt-1">Registrieren / Register Account</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="p-2">
+            <div class="mb-4">
+                <h2 class="text-danger fw-bold mb-1" style="font-family: 'Georgia', serif;">விநாயகா போற்றி!</h2>
+                <h4 class="text-warning fw-bold italic" style="font-family: 'Georgia', serif; font-size: 1.25rem;">Lob sei Vinayagar!</h4>
+            </div>
+
+            <div class="text-dark lh-lg" style="font-size: 0.95rem; text-align: justify;">
+                <p class="mb-3">
+                    Seit 2002 bin ich in der indischen Gastronomie tätig. Meine Reise begann im Alter von 24 Jahren mit einer großen Leidenschaft für die nordindische Küche und echte Gastfreundschaft. Im Jahr 2005 trat ich in unser Familienunternehmen, ein indisches Restaurant in Stuttgart, ein, wo ich umfassende Erfahrungen sowohl in der nordindischen als auch in der südindischen Küche sammeln konnte und mich kontinuierlich in der Branche weiterentwickelt habe.
+                </p>
+                <p class="mb-3">
+                    Unsere Küche vereint Tradition, Kultur und authentische Aromen. Inspiriert vom reichen kulinarischen Erbe Indiens und Sri Lankas, spezialisieren wir uns auf traditionelle Tandoori-Spezialitäten, den Einsatz aromatischer Gewürze aus Regionen wie Ceylon (Sri Lanka), Kerala und Andhra Pradesh sowie auf die ausgewogene Würze, die unseren nordindischen Kochstil auszeichnet. Für uns ist Essen weit mehr als nur eine Mahlzeit – es ist ein kulturelles Erlebnis, das Menschen miteinander verbindet.
+                </p>
+                <p class="mb-0">
+                    Mit hochwertigen Zutaten, traditionellen Rezepten und großem Respekt vor dem kulinarischen Handwerk möchten wir die wahre Essenz der indischen Küche mit jedem Gast teilen. Unser Ziel ist es, unvergessliche Genusserlebnisse zu schaffen und Menschen durch die Freude an ehrlichem, geschmackvollem Essen zusammenzubringen.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-5 pt-4 border-top">
+    <h4 class="fw-bold text-dark mb-4 text-center" style="font-family: 'Georgia', serif;">💬 Was unsere Gäste sagen / Customer Feedback</h4>
+    
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card p-4 bg-white border-0 shadow-sm h-100">
+                <div class="text-warning mb-2">⭐⭐⭐⭐⭐</div>
+                <p class="card-text text-secondary small flex-grow-1 italic">"Das beste Mango Chicken in der Region Munderkingen! Die Aromen und Gewürze schmecken genau wie in Indien. Absolut empfehlenswert!"</p>
+                <div class="border-top pt-2 mt-2">
+                    <small class="fw-bold text-dark d-block">Markus S.</small>
+                    <small class="text-muted scroll-text" style="font-size: 0.72rem;">Fulfillment Model: Lieferung</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-4 bg-white border-0 shadow-sm h-100">
+                <div class="text-warning mb-2">⭐⭐⭐⭐⭐</div>
+                <p class="card-text text-secondary small flex-grow-1 italic">"Amazing Sri Lankan Kottu Roti! Very authentic taste and the staff handles orders wonderfully. The sound system for kitchen alerts gets the food ready on time."</p>
+                <div class="border-top pt-2 mt-2">
+                    <small class="fw-bold text-dark d-block">Priya K.</small>
+                    <small class="text-muted scroll-text" style="font-size: 0.72rem;">Fulfillment Model: Abholung</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-4 bg-white border-0 shadow-sm h-100">
+                <div class="text-warning mb-2">⭐⭐⭐⭐⭐</div>
+                <p class="card-text text-secondary small flex-grow-1 italic">"Hervorragender Service und echtes kulinarisches Handwerk. Die Tandoori-Spezialitäten sind butterweich gewürzt. Wir kommen definitiv wieder vor Ort vorbei!"</p>
+                <div class="border-top pt-2 mt-2">
+                    <small class="fw-bold text-dark d-block">Sabine H.</small>
+                    <small class="text-muted scroll-text" style="font-size: 0.72rem;">Fulfillment Model: Dine-In</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

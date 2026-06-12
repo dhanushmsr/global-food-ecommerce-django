@@ -1,0 +1,31 @@
+{% extends 'booking/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card p-4 bg-white border-0 shadow-sm border-top border-danger border-4">
+            <h4 class="fw-bold text-dark mb-2">🛑 Terminate Culinary Request</h4>
+            <p class="text-muted small mb-4">You are requesting to drop Order <b>#{{ order.id }}</b> ({{ order.food_item.name }}). Please supply a cancellation metric parameter below.</p>
+            
+            {% if error %}<div class="alert alert-danger small p-2">{{ error }}</div>{% endif %}
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-secondary">Reason for Dropping Order</label>
+                    <select name="cancellation_reason" class="form-select mb-2" required>
+                        <option value="Changed my mind / Not hungry anymore">Changed my mind / Not hungry anymore</option>
+                        <option value="Order taking too long to prepare">Order taking too long to prepare</option>
+                        <option value="Incorrect delivery address or item variant selected">Incorrect delivery address or item variant selected</option>
+                        <option value="Other bespoke structural issues">Other reason</option>
+                    </select>
+                    <textarea name="cancellation_reason" class="form-control" rows="2" placeholder="Write custom details here if applicable..."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'dashboard' %}" class="btn btn-light w-50">Keep Order</a>
+                    <button type="submit" class="btn btn-danger w-50 fw-bold">Confirm Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

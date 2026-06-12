@@ -1,0 +1,31 @@
+{% extends 'booking/base.html' %}
+{% block content %}
+<div class="row justify-content-center my-5">
+    <div class="col-md-5">
+        <div class="card p-4 bg-white border-0 shadow" style="border-radius: 16px;">
+            <div class="text-center mb-4">
+                <h4 class="fw-bold text-dark" style="font-family: 'Georgia', serif;">🔒 Identity Verification</h4>
+                <p class="text-muted small">Enter the distinct codes issued to your contact nodes</p>
+                <hr style="border-top: 1px dashed #dee2e6;">
+            </div>
+
+            {% if error %}
+                <div class="alert alert-danger py-2 small text-center">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary">E-Mail OTP Code 📧</label>
+                    <input type="text" name="email_otp" class="form-control text-center font-monospace fw-bold fs-5" placeholder="000000" maxlength="6" required style="border-radius: 8px; letter-spacing: 4px;">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary">SMS Phone OTP Code 📱</label>
+                    <input type="text" name="phone_otp" class="form-control text-center font-monospace fw-bold fs-5" placeholder="000000" maxlength="6" required style="border-radius: 8px; letter-spacing: 4px;">
+                </div>
+                <button type="submit" class="btn btn-dark w-100 fw-bold py-2 text-uppercase" style="border-radius: 8px;">Verify Channels</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

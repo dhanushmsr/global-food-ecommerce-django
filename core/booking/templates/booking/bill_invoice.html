@@ -1,0 +1,95 @@
+{% extends 'booking/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card p-5 bg-white border-0 shadow-sm position-relative" id="printArea">
+            
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-dark mb-1" style="font-family: 'Georgia', serif;">GANESHA</h2>
+                <p class="text-muted small mb-0">Sri-Lanka & Indien in Munderkingen</p>
+                <hr style="border-top: 2px dashed #dee2e6;">
+                
+                <h5 class="text-uppercase tracking-wider fw-bold text-danger mt-3">Rechnung / Official Invoice Receipt</h5>
+                <p class="small text-muted">Order ID: <b>#{{ order.id }}</b> | Date: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+            </div>
+
+            <div class="bg-light p-3 rounded mb-4 row small g-3">
+                <div class="col-sm-6">
+                    <h6 class="fw-bold text-secondary text-uppercase mb-2" style="font-size: 0.75rem;">Kunde / Customer Details:</h6>
+                    <p class="mb-1"><b>Name:</b> {{ order.user.first_name }} {{ order.user.last_name }}</p>
+                    <p class="mb-0"><b>Tel:</b> {{ order.phone_number }}</p>
+                </div>
+                <div class="col-sm-6">
+                    <h6 class="fw-bold text-secondary text-uppercase mb-2" style="font-size: 0.75rem;">Service & Fulfillment Mode:</h6>
+                    <p class="mb-1"><b>Type:</b> <span class="badge bg-dark">{{ order.get_order_type_display }}</span></p>
+                    <p class="mb-0"><b>Address:</b> {{ order.delivery_address }}</p>
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-dark mb-3">Bestellübersicht / Itemized Order Breakdown</h6>
+            <table class="table table-sm align-middle small mb-4">
+                <thead>
+                    <tr class="text-secondary border-bottom">
+                        <th>Beschreibung / Description</th>
+                        <th class="text-center">Menge / Qty</th>
+                        <th class="text-end">Gesamt / Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for breakdown in order.items.all %}
+                    <tr>
+                        <td>{{ breakdown.food_item_name }} <small class="text-muted">(€{{ breakdown.unit_price }})</small></td>
+                        <td class="text-center">x{{ breakdown.quantity }}</td>
+                        <td class="text-end fw-semibold">€{{ breakdown.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="border-top pt-3 text-end small ms-auto" style="max-width: 380px;">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Zwischensumme / Subtotal (Net):</span>
+                    <span class="fw-semibold">€{{ order.subtotal }}</span>
+                </div>
+                
+                {% if order.coupon_applied %}
+                <div class="d-flex justify-content-between mb-1 text-danger">
+                    <span>Gutschein / Coupon ({{ order.coupon_applied.code }}):</span>
+                    <span class="fw-bold">-{{ order.coupon_applied.discount_percentage }}%</span>
+                </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-between mb-1 text-muted italic" style="font-size: 0.82rem;">
+                    <span>Enthaltene MwSt. / Included Total VAT:</span>
+                    <span>€{{ order.gst_amount }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom text-muted">
+                    <span>Zahlungsart / Payment Channel:</span>
+                    <span class="badge bg-secondary py-1 px-2">{{ order.get_payment_method_display }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-2 text-success">
+                    <h5 class="fw-bold mb-0">Gesamtsumme / Grand Total:</h5>
+                    <h3 class="fw-bold mb-0">€{{ order.final_amount }}</h3>
+                </div>
+            </div>
+
+            <div class="alert alert-warning text-center mt-4 border-0 p-2 small">
+                ⏱️ <b>Status:</b> {{ order.get_status_display }} | <b>Zustellzeit / Estimated Time:</b> {{ order.estimated_time }}
+            </div>
+
+            <hr class="mt-4" style="border-top: 1px dashed #dee2e6;">
+            <div class="text-center text-muted small mt-3">
+                <p class="mb-0 fw-medium">Vielen Dank für Ihre Bestellung bei Ganesha!</p>
+                <p class="mb-0" style="font-size: 0.78rem;">Thank you for dining with us. Enjoy your meal!</p>
+                
+                <button class="btn btn-dark btn-sm px-4 mt-4 rounded-pill d-print-none fw-semibold shadow-sm" onclick="window.print()">
+                    Rechnung Drucken / Print Bill 🖨️
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

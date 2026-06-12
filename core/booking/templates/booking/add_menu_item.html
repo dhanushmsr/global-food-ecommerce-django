@@ -1,0 +1,87 @@
+{% extends 'booking/base.html' %}
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-md-8 col-lg-6">
+        
+        <div class="card p-4 bg-white border-0 shadow" style="border-radius: 16px;">
+            
+            <div class="text-center mb-4">
+                <h3 class="fw-bold text-dark mb-1" style="font-family: 'Georgia', serif;">
+                    {% if item %}📝 Speise bearbeiten / Edit Item{% else %}🍲 Neue Speise / Add New Dish{% endif %}
+                </h3>
+                <p class="text-muted small">Ganesha Menu Management Matrix</p>
+                <hr style="border-top: 1px dashed #dee2e6;">
+            </div>
+            
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-bold text-secondary">Dish Name (German)</label>
+                        <input type="text" name="name_de" class="form-control" value="{{ item.name_de|default:'' }}" placeholder="z.B. Butter Chicken" required style="border-radius: 8px;">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-bold text-secondary">Dish Name (English)</label>
+                        <input type="text" name="name_en" class="form-control" value="{{ item.name_en|default:'' }}" placeholder="e.g. Butter Chicken" required style="border-radius: 8px;">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary">Steuerklasse / Tax Allocation</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0">💶</span>
+                        <select name="item_type" class="form-select border-start-0 ps-0 fw-semibold text-dark" required style="z-index: 1;">
+                            <option value="FOOD" {% if item.item_type == 'FOOD' or not item %}selected{% endif %}>🍛 Speise / Food Items (7% MwSt.)</option>
+                            <option value="BEVERAGE" {% if item.item_type == 'BEVERAGE' %}selected{% endif %}>🧃 Getränk / Beverages (19% MwSt.)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary">Klassifizierung / Diet Type</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0">🌱</span>
+                        <select name="diet_type" class="form-select border-start-0 ps-0" required style="z-index: 1;">
+                            <option value="VEG" {% if item.diet_type == 'VEG' %}selected{% endif %}>Vegetarian 🟢</option>
+                            <option value="NON_VEG" {% if item.diet_type == 'NON_VEG' %}selected{% endif %}>Non-Vegetarian 🔴</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary">Preis / Current Price</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 fw-bold">€</span>
+                        <input type="number" step="0.01" name="price" class="form-control border-start-0 ps-1" value="{{ item.price|default:'' }}" placeholder="0.00" required style="z-index: 1;">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary">Beschreibung (German)</label>
+                    <textarea name="description_de" class="form-control" rows="2" placeholder="Beschreibung auf Deutsch..." style="border-radius: 8px;">{{ item.description_de|default:'' }}</textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary">Description (English)</label>
+                    <textarea name="description_en" class="form-control" rows="2" placeholder="Description in English..." style="border-radius: 8px;">{{ item.description_en|default:'' }}</textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary">Produktbild / Dish Image</label>
+                    <input type="file" name="image" class="form-control" accept="image/*" style="border-radius: 8px;">
+                    {% if item.image %}
+                        <div class="form-text text-muted mt-2 small">
+                            📁 Current: <a href="{{ item.image.url }}" target="_blank" class="text-danger fw-semibold text-decoration-none">{{ item.image.name }}</a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn btn-danger w-100 fw-bold py-2.5 text-uppercase tracking-wider shadow-sm mt-2" style="border-radius: 8px;">
+                    Speichern / Save Item Configuration
+                </button>
+            </form>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
