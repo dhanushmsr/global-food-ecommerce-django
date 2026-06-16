@@ -1,122 +1,143 @@
 {% extends 'booking/base.html' %}
 {% load static %}
 {% block content %}
-<div class="row justify-content-center align-items-center" style="min-height: 80vh; margin-top: 20px; margin-bottom: 40px;">
-    <div class="col-md-7 col-lg-6">
-        
-        <div class="card p-4 bg-white border-0 shadow-sm" style="border-radius: 16px;">
-            
-            <div class="text-center mb-4">
-                <h3 class="fw-bold text-dark mb-1" style="font-family: 'Georgia', serif;">Registrieren / Register</h3>
-                <p class="text-muted small">Create your secure profile on Ganesha Portal</p>
-                <hr style="border-top: 1px dashed #dee2e6; margin: 15px 0;">
+<div class="row justify-content-center align-items-center my-5">
+    <div class="col-lg-6 col-md-8">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white">
+            <div class="bg-danger text-white text-center p-4">
+                <img src="{% static 'booking/images/logo.png' %}" class="bg-white rounded-4 shadow p-2 mb-3" alt="Ganesha Logo" style="width:95px;height:95px;object-fit:contain;">
+                <h3 class="fw-bold mb-1" style="font-family:Georgia,serif;">Registrieren / Register</h3>
+                <p class="mb-0 text-white-50 small">Create your secure profile on Ganesha Portal</p>
             </div>
-
-            {% if error %}
-                <div class="alert alert-danger p-2 small text-center border-0 fw-semibold mb-3" style="border-radius: 8px;">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}
+            <div class="card-body p-4">
+                {% if error %}
+                <div class="alert alert-danger border-0 rounded-4 py-2 small text-center fw-semibold">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}
                 </div>
-            {% endif %}
-
-            <form method="POST">
-                {% csrf_token %}
-                <div class="row g-3">
-                    
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-secondary">Vorname / First Name</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                                <i class="bi bi-person"></i>
-                            </span>
-                            <input type="text" name="first_name" class="form-control border-start-0 ps-0" required placeholder="John" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
+                {% endif %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Vorname / First Name</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                                <span class="input-group-text border-0 bg-light text-danger"><i class="bi bi-person-fill"></i></span>
+                                <input type="text" name="first_name" class="form-control border-0" required placeholder="John">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Nachname / Last Name</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                                <span class="input-group-text border-0 bg-light text-danger"><i class="bi bi-person-fill"></i></span>
+                                <input type="text" name="last_name" class="form-control border-0" required placeholder="Doe">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">Telefonnummer / Login Contact</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                                <span class="input-group-text bg-light border-0 text-danger"><i class="bi bi-telephone-fill"></i></span>
+                                <select name="country_code" class="form-select bg-light border-0 fw-bold" style="max-width:110px;">
+                                    <option value="+49" selected>🇩🇪 +49</option>
+                                    <option value="+91">🇮🇳 +91</option>
+                                    <option value="+44">🇬🇧 +44</option>
+                                    <option value="+1">🇺🇸 +1</option>
+                                </select>
+                                <input type="tel" name="phone_raw" class="form-control border-0" required placeholder="1761234567">
+                            </div>
+                            <small class="text-muted">Select prefix and enter number without leading zero.</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">E-Mail Adresse / Email</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                                <span class="input-group-text border-0 bg-light text-danger"><i class="bi bi-envelope-fill"></i></span>
+                                <input type="email" name="email" class="form-control border-0" required placeholder="name@example.com">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">Adresse / Delivery Address</label>
+                            <div class="input-group shadow-sm rounded-4 overflow-hidden">
+                                <span class="input-group-text border-0 bg-light text-danger align-textarea-icon"><i class="bi bi-geo-alt-fill"></i></span>
+                                <textarea name="address" class="form-control border-0" rows="2" required placeholder="Enter delivery address..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">Passwort / Password</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                                <span class="input-group-text border-0 bg-light text-danger"><i class="bi bi-shield-lock-fill"></i></span>
+                                <input type="password" id="registerPassword" name="password" class="form-control border-0" required placeholder="••••••••">
+                                <button type="button" class="input-group-text bg-light border-0 text-muted px-3" onclick="togglePasswordVisibility('registerPassword','regEyeIcon')">
+                                    <i id="regEyeIcon" class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="p-3 bg-light rounded-4 shadow-sm mt-3 border" id="passwordGuidelinesCard">
+                                <span class="small fw-bold text-dark d-block mb-1">🔐 Sicherheits-Check / Security Requirements:</span>
+                                <ul class="list-unstyled m-0 p-0" style="font-size: 0.8rem;">
+                                    <li id="rule-length" class="text-danger fw-semibold py-0.5 transition-all">
+                                        <i class="bi bi-x-circle-fill me-1" id="icon-length"></i> {% if lang == 'de' %}Mindestens 8 Zeichen{% else %}Minimum 8 characters{% endif %}
+                                    </li>
+                                    <li id="rule-upper" class="text-danger fw-semibold py-0.5 transition-all">
+                                        <i class="bi bi-x-circle-fill me-1" id="icon-upper"></i> {% if lang == 'de' %}Mindestens 1 Großbuchstabe{% else %}At least 1 uppercase letter{% endif %}
+                                    </li>
+                                    <li id="rule-special" class="text-danger fw-semibold py-0.5 transition-all">
+                                        <i class="bi bi-x-circle-fill me-1" id="icon-special"></i> {% if lang == 'de' %}Mindestens 1 Sonderzeichen (!@#$ etc.){% else %}At least 1 special character (!@#$ etc.){% endif %}
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-secondary">Nachname / Last Name</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                                <i class="bi bi-person"></i>
-                            </span>
-                            <input type="text" name="last_name" class="form-control border-start-0 ps-0" required placeholder="Doe" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
-                        </div>
+                    <button type="submit" class="btn btn-danger w-100 rounded-pill py-3 fw-bold shadow mt-4 text-uppercase submit-btn">
+                        <i class="bi bi-person-plus-fill me-1"></i>
+                        Registrierung abschließen / Complete Registration
+                    </button>
+                    <div class="text-center mt-3 pt-3 border-top">
+                        <span class="small text-muted">Bereits registriert? / Existing Guest?</span>
+                        <a href="{% url 'login' %}" class="text-danger small fw-bold text-decoration-none ms-1">
+                            Einloggen / Sign In
+                        </a>
                     </div>
-                    
-                    <div class="col-md-12">
-                        <label class="form-label small fw-bold text-secondary">Telefonnummer / Primary Contact Number (Used to Login)</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                                <i class="bi bi-telephone"></i>
-                            </span>
-                            <select name="country_code" class="form-select border-secondary-subtle bg-light text-dark fw-bold" style="max-width: 110px; z-index: 2; font-size: 0.9rem;">
-                                <option value="+49" selected>🇩🇪 +49</option>
-                                <option value="+91">🇮🇳 +91</option>
-                                <option value="+44">🇬🇧 +44</option>
-                                <option value="+1">🇺🇸 +1</option>
-                            </select>
-                            <input type="tel" name="phone_raw" class="form-control" required placeholder="e.g. 1761234567 or 9566960500" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
-                        </div>
-                        <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
-                            Select country routing prefix, then write the mobile number without leading zeros.
-                        </small>
-                    </div>
-
-                    <div class="col-md-12">
-                        <label class="form-label small fw-bold text-secondary">E-Mail Adresse / Email Address (Used for Verification)</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                                <i class="bi bi-envelope"></i>
-                            </span>
-                            <input type="email" name="email" class="form-control border-start-0 ps-0" required placeholder="name@example.com" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-12">
-                        <label class="form-label small fw-bold text-secondary">Adresse / Default Delivery Address</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light text-muted border-end-0 alignment-textarea-icon" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                                <i class="bi bi-geo-alt"></i>
-                            </span>
-                            <textarea name="address" class="form-control border-start-0 ps-0" rows="2" required placeholder="Enter primary residential address details for logistics tracking..." style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;"></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-12">
-                        <label class="form-label small fw-bold text-secondary">Passwort / Secure Passcode</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                                <i class="bi bi-shield-lock"></i>
-                            </span>
-                            <input type="password" id="registerPassword" name="password" class="form-control border-start-0 border-end-0 ps-0" required placeholder="••••••••" style="z-index: 1;">
-                            <button type="button" class="input-group-text bg-light border-start-0 text-muted" onclick="togglePasswordVisibility('registerPassword', 'regEyeIcon')" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 3; cursor: pointer;">
-                                <i id="regEyeIcon" class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                </div>
-                
-                <button type="submit" class="btn btn-danger w-100 mt-4 py-2.5 fw-bold text-uppercase tracking-wide shadow-sm" style="border-radius: 8px;">
-                    Registrierung abschließen / Complete Registration
-                </button>
-
-                <div class="text-center pt-3 mt-3 border-top">
-                    <span class="text-muted small">Bereits registriert? / Existing Guest?</span>
-                    <a href="{% url 'login' %}" class="text-danger small fw-bold ms-1 text-decoration-none">
-                        Einloggen / Sign In
-                    </a>
-                </div>
-            </form>
-            
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+document.getElementById('registerPassword').addEventListener('input', function() {
+    const val = this.value;
+    
+    // Evaluation boolean conditions check matrices
+    const hasLen = val.length >= 8;
+    const hasUpper = /[A-Z]/.test(val);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>_+-]/.test(val);
+    
+    // Dynamic node repaint engine helper closure 
+    function setRuleState(elementId, iconId, isValid) {
+        const item = document.getElementById(elementId);
+        const icon = document.getElementById(iconId);
+        if (isValid) {
+            item.classList.remove('text-danger');
+            item.classList.add('text-success');
+            icon.classList.remove('bi-x-circle-fill');
+            icon.classList.add('bi-check-circle-fill');
+        } else {
+            item.classList.remove('text-success');
+            item.classList.add('text-danger');
+            icon.classList.remove('bi-check-circle-fill');
+            icon.classList.add('bi-x-circle-fill');
+        }
+    }
+    
+    setRuleState('rule-length', 'icon-length', hasLen);
+    setRuleState('rule-upper', 'icon-upper', hasUpper);
+    setRuleState('rule-special', 'icon-special', hasSpecial);
+});
+
 function togglePasswordVisibility(inputId, iconId) {
     const passwordField = document.getElementById(inputId);
     const eyeIcon = document.getElementById(iconId);
-    
     if (passwordField.type === "password") {
         passwordField.type = "text";
         eyeIcon.classList.remove("bi-eye");
@@ -130,11 +151,14 @@ function togglePasswordVisibility(inputId, iconId) {
 </script>
 
 <style>
-/* Adjusts icon alignment within bootstrap input groups specifically for textareas */
-.alignment-textarea-icon {
-    display: flex;
-    align-items: flex-start;
-    padding-top: 0.75rem;
+.align-textarea-icon{align-items:flex-start;padding-top:.8rem}
+.card{animation:fadeUp .4s ease}
+.transition-all { transition: all 0.2s ease-in-out; }
+.submit-btn { transition: 0.2s ease; }
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(220,53,69,0.3) !important; }
+@keyframes fadeUp{
+    from{opacity:0;transform:translateY(20px)}
+    to{opacity:1;transform:translateY(0)}
 }
 </style>
 {% endblock %}

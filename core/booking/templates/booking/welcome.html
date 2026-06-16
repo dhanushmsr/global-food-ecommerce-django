@@ -1,81 +1,85 @@
 {% extends 'booking/base.html' %}
 {% load static %}
 {% block content %}
-
-<div class="row align-items-center g-5 my-2">
-    <div class="col-lg-5 text-center">
-        <div class="p-4 bg-white rounded-3 shadow-sm border border-light">
-            <img src="{% static 'booking/images/logo.png' %}" alt="Ganesha Logo" class="img-fluid mb-4 rounded" style="max-height: 240px; object-fit: contain;">
-            
-            <h1 class="fw-bold text-dark" style="font-family: 'Georgia', serif;">Ganesha</h1>
-            <p class="text-muted small px-3">Sri-Lanka & Indien in Munderkingen</p>
-            
-            <div class="d-grid gap-2 col-10 mx-auto mt-4">
-                <a href="{% url 'login' %}" class="btn btn-danger btn-lg fw-bold py-2.5 shadow-sm text-uppercase tracking-wider">Einloggen / Sign In</a>
-                <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-sm fw-semibold mt-1">Registrieren / Register Account</a>
+<section class="hero-box my-4">
+    <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+            <span class="badge bg-danger rounded-pill px-4 py-2 mb-3 shadow">🍛 {% if lang == 'de' %}Sri-Lanka & Indien in Munderkingen{% else %}Sri Lanka & India in Munderkingen{% endif %}</span>
+            <h1 class="display-4 fw-bold hero-title">{% if lang == 'de' %}Willkommen bei <span>Ganesha</span>{% else %}Welcome to <span>Ganesha</span>{% endif %}</h1>
+            <h4 class="text-warning fw-bold mb-3" style="font-family:Georgia,serif;">விநாயகா போற்றி! | Lob sei Vinayagar!</h4>
+            <p class="text-muted lh-lg">{% if lang == 'de' %}Authentische indische und sri-lankische Spezialitäten mit traditionellen Gewürzen, frischen Zutaten und echter Leidenschaft.{% else %}Authentic Indian and Sri Lankan specialties crafted with traditional spices, fresh ingredients, and true passion.{% endif %}</p>
+            <div class="row g-3 my-4">
+                <div class="col-4"><div class="stat-card"><h3>20+</h3><small>{% if lang == 'de' %}Jahre Erfahrung{% else %}Years Experience{% endif %}</small></div></div>
+                <div class="col-4"><div class="stat-card"><h3>100%</h3><small>{% if lang == 'de' %}Tradition{% else %}Tradition{% endif %}</small></div></div>
+                <div class="col-4"><div class="stat-card"><h3>5★</h3><small>{% if lang == 'de' %}Bewertung{% else %}Reviews{% endif %}</small></div></div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'login' %}" class="btn btn-danger rounded-pill px-5 py-3 fw-bold shadow">{% if lang == 'de' %}Einloggen{% else %}Sign In{% endif %}</a>
+                <a href="{% url 'register' %}" class="btn btn-outline-dark rounded-pill px-5 py-3 fw-bold">{% if lang == 'de' %}Registrieren{% else %}Register{% endif %}</a>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="logo-card">
+                <img src="{% static 'booking/images/logo.png' %}" class="main-logo" alt="Ganesha Logo">
+                <div class="rating-card">
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <small>{% if lang == 'de' %}Authentischer Geschmack{% else %}Authentic Taste{% endif %}</small>
+                </div>
             </div>
         </div>
     </div>
+</section>
 
-    <div class="col-lg-7">
-        <div class="p-2">
-            <div class="mb-4">
-                <h2 class="text-danger fw-bold mb-1" style="font-family: 'Georgia', serif;">விநாயகா போற்றி!</h2>
-                <h4 class="text-warning fw-bold italic" style="font-family: 'Georgia', serif; font-size: 1.25rem;">Lob sei Vinayagar!</h4>
-            </div>
-
-            <div class="text-dark lh-lg" style="font-size: 0.95rem; text-align: justify;">
-                <p class="mb-3">
-                    Seit 2002 bin ich in der indischen Gastronomie tätig. Meine Reise begann im Alter von 24 Jahren mit einer großen Leidenschaft für die nordindische Küche und echte Gastfreundschaft. Im Jahr 2005 trat ich in unser Familienunternehmen, ein indisches Restaurant in Stuttgart, ein, wo ich umfassende Erfahrungen sowohl in der nordindischen als auch in der südindischen Küche sammeln konnte und mich kontinuierlich in der Branche weiterentwickelt habe.
-                </p>
-                <p class="mb-3">
-                    Unsere Küche vereint Tradition, Kultur und authentische Aromen. Inspiriert vom reichen kulinarischen Erbe Indiens und Sri Lankas, spezialisieren wir uns auf traditionelle Tandoori-Spezialitäten, den Einsatz aromatischer Gewürze aus Regionen wie Ceylon (Sri Lanka), Kerala und Andhra Pradesh sowie auf die ausgewogene Würze, die unseren nordindischen Kochstil auszeichnet. Für uns ist Essen weit mehr als nur eine Mahlzeit – es ist ein kulturelles Erlebnis, das Menschen miteinander verbindet.
-                </p>
-                <p class="mb-0">
-                    Mit hochwertigen Zutaten, traditionellen Rezepten und großem Respekt vor dem kulinarischen Handwerk möchten wir die wahre Essenz der indischen Küche mit jedem Gast teilen. Unser Ziel ist es, unvergessliche Genusserlebnisse zu schaffen und Menschen durch die Freude an ehrlichem, geschmackvollem Essen zusammenzubringen.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="mt-5 pt-4 border-top">
-    <h4 class="fw-bold text-dark mb-4 text-center" style="font-family: 'Georgia', serif;">💬 Was unsere Gäste sagen / Customer Feedback</h4>
-    
+<section class="my-5">
     <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card p-4 bg-white border-0 shadow-sm h-100">
-                <div class="text-warning mb-2">⭐⭐⭐⭐⭐</div>
-                <p class="card-text text-secondary small flex-grow-1 italic">"Das beste Mango Chicken in der Region Munderkingen! Die Aromen und Gewürze schmecken genau wie in Indien. Absolut empfehlenswert!"</p>
-                <div class="border-top pt-2 mt-2">
-                    <small class="fw-bold text-dark d-block">Markus S.</small>
-                    <small class="text-muted scroll-text" style="font-size: 0.72rem;">Fulfillment Model: Lieferung</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card p-4 bg-white border-0 shadow-sm h-100">
-                <div class="text-warning mb-2">⭐⭐⭐⭐⭐</div>
-                <p class="card-text text-secondary small flex-grow-1 italic">"Amazing Sri Lankan Kottu Roti! Very authentic taste and the staff handles orders wonderfully. The sound system for kitchen alerts gets the food ready on time."</p>
-                <div class="border-top pt-2 mt-2">
-                    <small class="fw-bold text-dark d-block">Priya K.</small>
-                    <small class="text-muted scroll-text" style="font-size: 0.72rem;">Fulfillment Model: Abholung</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card p-4 bg-white border-0 shadow-sm h-100">
-                <div class="text-warning mb-2">⭐⭐⭐⭐⭐</div>
-                <p class="card-text text-secondary small flex-grow-1 italic">"Hervorragender Service und echtes kulinarisches Handwerk. Die Tandoori-Spezialitäten sind butterweich gewürzt. Wir kommen definitiv wieder vor Ort vorbei!"</p>
-                <div class="border-top pt-2 mt-2">
-                    <small class="fw-bold text-dark d-block">Sabine H.</small>
-                    <small class="text-muted scroll-text" style="font-size: 0.72rem;">Fulfillment Model: Dine-In</small>
-                </div>
-            </div>
-        </div>
+        <div class="col-md-4"><div class="service-card"><i class="bi bi-fire fs-1 text-danger"></i><h5>{% if lang == 'de' %}Tandoori Spezialitäten{% else %}Tandoori Specialties{% endif %}</h5><p>{% if lang == 'de' %}Traditionelle Rezepte mit aromatischen Gewürzen.{% else %}Traditional recipes layered with aromatic spices.{% endif %}</p></div></div>
+        <div class="col-md-4"><div class="service-card"><i class="bi bi-basket-fill fs-1 text-danger"></i><h5>{% if lang == 'de' %}Online Bestellung{% else %}Online Ordering{% endif %}</h5><p>{% if lang == 'de' %}Einfach bestellen und den aktuellen Status verfolgen.{% else %}Order with ease and track your live fulfillment status.{% endif %}</p></div></div>
+        <div class="col-md-4"><div class="service-card"><i class="bi bi-truck fs-1 text-danger"></i><h5>{% if lang == 'de' %}Schneller Service{% else %}Fast Delivery{% endif %}</h5><p>{% if lang == 'de' %}Frische Zubereitung für Lieferung und Abholung.{% else %}Freshly prepared directly for local delivery or pickup.{% endif %}</p></div></div>
     </div>
-</div>
+</section>
 
+<section class="story-section my-5">
+    <h2>{% if lang == 'de' %}Unsere Geschichte{% else %}Our Story{% endif %}</h2>
+    {% if lang == 'de' %}
+    <p>Seit 2002 bin ich in der indischen Gastronomie tätig. Meine Reise begann im Alter von 24 Jahren mit einer großen Leidenschaft für die nordindische Küche und echte Gastfreundschaft. Im Jahr 2005 trat ich in unser Familienunternehmen, ein indisches Restaurant in Stuttgart, ein, wo ich umfassende Erfahrungen sowohl in der nordindischen als auch in der südindischen Küche sammeln konnte und mich kontinuierlich in der Branche weiterentwickelt habe.</p>
+    <p>Unsere Küche vereint Tradition, Kultur und authentische Aromen. Inspiriert vom reichen kulinarischen Erbe Indiens und Sri Lankas, spezialisieren wir uns auf traditionelle Tandoori-Spezialitäten, den Einsatz aromatischer Gewürze aus Regionen wie Ceylon (Sri Lanka), Kerala und Andhra Pradesh sowie auf die ausgewogene Würze, die unseren nordindischen Kochstil auszeichnet. Für uns ist Essen weit mehr als nur eine Mahlzeit – es ist ein kulturelles Erlebnis, das Menschen miteinander verbindet.</p>
+    <p>Mit hochwertigen Zutaten, traditionellen Rezepten und großem Respekt vor dem kulinarischen Handwerk möchten wir die wahre Essenz der indischen Küche mit jedem Gast teilen. Unser Ziel ist es, unvergessliche Genusserlebnisse zu schaffen und Menschen durch die Freude an ehrlichem, geschmackvollem Essen zusammenzubringen.</p>
+    {% else %}
+    <p>I have been active in Indian gastronomy since 2002. My culinary journey began at the age of 24 with a deep passion for North Indian cuisine and authentic hospitality. In 2005, I joined our family business, an established Indian restaurant in Stuttgart, where I gained extensive experience in both North and South Indian cooking styles while continuously developing within the industry.</p>
+    <p>Our kitchen perfectly harmonizes tradition, culture, and genuine flavors. Inspired by the rich culinary heritage of India and Sri Lanka, we specialize in traditional Tandoori selections, the use of aromatic regional spices from Ceylon (Sri Lanka), Kerala, and Andhra Pradesh, as well as the perfectly balanced seasoning that characterizes our specialized North Indian cooking style. For us, food is far more than just a meal—it is a cultural experience that brings people together.</p>
+    <p>With high-quality ingredients, traditional recipes, and deep respect for the culinary craft, we strive to share the true essence of Indian cuisine with every single guest. Our ultimate goal is to create unforgettable moments of enjoyment and connect people through the shared joy of honest, flavor-rich food.</p>
+    {% endif %}
+</section>
+
+<section class="my-5">
+    <h3 class="text-center fw-bold mb-4" style="font-family:Georgia,serif;">{% if lang == 'de' %}💬 Was unsere Gäste sagen{% else %}💬 What Our Guests Say{% endif %}</h3>
+    <div class="row g-4">
+        <div class="col-md-4"><div class="review-card"><div class="stars">⭐⭐⭐⭐⭐</div><p>{% if lang == 'de' %}"Das beste Mango Chicken in Munderkingen."{% else %}"The absolute best Mango Chicken in Munderkingen."{% endif %}</p><b>Markus S.</b></div></div>
+        <div class="col-md-4"><div class="review-card"><div class="stars">⭐⭐⭐⭐⭐</div><p>{% if lang == 'de' %}"Authentisches Sri Lankan Kottu und toller Service."{% else %}"Authentic Sri Lankan Kottu and amazing service."{% endif %}</p><b>Priya K.</b></div></div>
+        <div class="col-md-4"><div class="review-card"><div class="stars">⭐⭐⭐⭐⭐</div><p>{% if lang == 'de' %}"Perfekte Gewürze und echtes indisches Erlebnis."{% else %}"Perfect seasoning and a genuine Indian experience."{% endif %}</p><b>Sabine H.</b></div></div>
+    </div>
+</section>
+
+<style>
+.hero-box{background:linear-gradient(135deg,#fff7ed,#fff,#fff1f2);padding:55px;border-radius:35px;box-shadow:0 25px 60px rgba(127,29,29,.12);position:relative;overflow:hidden}
+.hero-box:before{content:"";position:absolute;width:220px;height:220px;background:rgba(220,53,69,.08);border-radius:50%;right:-70px;top:-70px}
+.hero-title{font-family:Georgia,serif;line-height:1.15}.hero-title span{color:#dc3545;text-shadow:2px 2px 10px rgba(220,53,69,.15)}
+.logo-card{position:relative;background:linear-gradient(145deg,#fff,#fff7ed);padding:45px;border-radius:35px;box-shadow:0 25px 60px rgba(220,53,69,.20);border:1px solid rgba(220,53,69,.08);text-align:center}
+.main-logo{max-width:100%;height:330px;object-fit:contain;filter:drop-shadow(0 15px 20px rgba(0,0,0,.15));animation:floatLogo 4s ease-in-out infinite}
+.rating-card{position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);background:#fff;min-width:230px;padding:14px 25px;border-radius:50px;box-shadow:0 12px 35px rgba(0,0,0,.18);font-weight:bold;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:18px}
+.rating-card small{font-size:12px;color:#6c757d}.stars{text-align:center;width:100%;display:block;letter-spacing:2px;color:#ffc107}
+.stat-card{height:100%;background:rgba(255,255,255,.9);padding:22px;text-align:center;border-radius:25px;box-shadow:0 12px 30px rgba(0,0,0,.08);border:1px solid #fff;transition:.3s}
+.stat-card:hover{transform:translateY(-6px)}.stat-card h3{color:#dc3545;font-weight:800}
+.service-card{height:100%;background:#fff;padding:35px 25px;text-align:center;border-radius:28px;box-shadow:0 18px 40px rgba(0,0,0,.08);transition:.35s;border-bottom:5px solid transparent}
+.service-card:hover{transform:translateY(-10px);border-bottom:5px solid #dc3545;box-shadow:0 25px 50px rgba(220,53,69,.15)}
+.service-card h5{font-family:Georgia,serif;font-weight:bold;margin-top:15px}.service-card p{color:#6c757d;font-size:14px}
+.story-section{background:linear-gradient(rgba(33,37,41,.88),rgba(127,29,29,.92)),url("{% static 'booking/images/logo.png' %}");background-size:contain;background-repeat:no-repeat;background-position:center;color:#fff;padding:55px;border-radius:35px;text-align:justify;box-shadow:0 25px 60px rgba(0,0,0,.25)}
+.story-section h2{text-align:center;font-family:Georgia,serif;font-weight:bold;font-size:35px;margin-bottom:30px;color:#ffc107}.story-section p{line-height:1.9;font-size:15px;color:#f8f9fa}
+.review-card{height:100%;background:#fff;padding:30px;text-align:center;border-radius:28px;box-shadow:0 18px 40px rgba(0,0,0,.08);transition:.3s}
+.review-card:hover{transform:scale(1.04);box-shadow:0 20px 45px rgba(220,53,69,.15)}.review-card p{font-size:14px;color:#6c757d;margin-top:15px}.review-card b{color:#dc3545}
+.btn-danger{background:linear-gradient(135deg,#dc3545,#7f1d1d);border:0}.btn{transition:.25s}.btn:hover{transform:translateY(-3px)}
+@keyframes floatLogo{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
+@media(max-width:991px){.hero-box,.story-section{padding:28px}.main-logo{height:230px}.rating-card{position:relative;bottom:auto;margin:20px auto 0}.hero-title{font-size:2.4rem}}
+@media(max-width:576px){.stat-card{padding:15px}.stat-card h3{font-size:1.4rem}.btn{width:100%}.main-logo{height:190px}}
+</style>
 {% endblock %}

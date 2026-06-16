@@ -1,87 +1,143 @@
 {% extends 'booking/base.html' %}
 {% block content %}
-<div class="row justify-content-center my-4">
-    <div class="col-md-8 col-lg-6">
-        
-        <div class="card p-4 bg-white border-0 shadow" style="border-radius: 16px;">
-            
-            <div class="text-center mb-4">
-                <h3 class="fw-bold text-dark mb-1" style="font-family: 'Georgia', serif;">
-                    {% if item %}📝 Speise bearbeiten / Edit Item{% else %}🍲 Neue Speise / Add New Dish{% endif %}
-                </h3>
-                <p class="text-muted small">Ganesha Menu Management Matrix</p>
-                <hr style="border-top: 1px dashed #dee2e6;">
-            </div>
-            
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <div class="row g-3 mb-4">
-                    <div class="col-sm-6">
-                        <label class="form-label small fw-bold text-secondary">Dish Name (German)</label>
-                        <input type="text" name="name_de" class="form-control" value="{{ item.name_de|default:'' }}" placeholder="z.B. Butter Chicken" required style="border-radius: 8px;">
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="form-label small fw-bold text-secondary">Dish Name (English)</label>
-                        <input type="text" name="name_en" class="form-control" value="{{ item.name_en|default:'' }}" placeholder="e.g. Butter Chicken" required style="border-radius: 8px;">
-                    </div>
-                </div>
 
-                <div class="mb-4">
-                    <label class="form-label small fw-bold text-secondary">Steuerklasse / Tax Allocation</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light text-muted border-end-0">💶</span>
-                        <select name="item_type" class="form-select border-start-0 ps-0 fw-semibold text-dark" required style="z-index: 1;">
-                            <option value="FOOD" {% if item.item_type == 'FOOD' or not item %}selected{% endif %}>🍛 Speise / Food Items (7% MwSt.)</option>
-                            <option value="BEVERAGE" {% if item.item_type == 'BEVERAGE' %}selected{% endif %}>🧃 Getränk / Beverages (19% MwSt.)</option>
-                        </select>
-                    </div>
+<div class="row justify-content-center my-5">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden">
+            <!-- Header Block Section -->
+            <div class="bg-danger text-white text-center p-4">
+                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center shadow mb-3" style="width:78px;height:78px;">
+                    <span class="fs-1">🍲</span>
                 </div>
-
-                <div class="mb-4">
-                    <label class="form-label small fw-bold text-secondary">Klassifizierung / Diet Type</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light text-muted border-end-0">🌱</span>
-                        <select name="diet_type" class="form-select border-start-0 ps-0" required style="z-index: 1;">
-                            <option value="VEG" {% if item.diet_type == 'VEG' %}selected{% endif %}>Vegetarian 🟢</option>
-                            <option value="NON_VEG" {% if item.diet_type == 'NON_VEG' %}selected{% endif %}>Non-Vegetarian 🔴</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label small fw-bold text-secondary">Preis / Current Price</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 fw-bold">€</span>
-                        <input type="number" step="0.01" name="price" class="form-control border-start-0 ps-1" value="{{ item.price|default:'' }}" placeholder="0.00" required style="z-index: 1;">
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary">Beschreibung (German)</label>
-                    <textarea name="description_de" class="form-control" rows="2" placeholder="Beschreibung auf Deutsch..." style="border-radius: 8px;">{{ item.description_de|default:'' }}</textarea>
-                </div>
-                <div class="mb-4">
-                    <label class="form-label small fw-bold text-secondary">Description (English)</label>
-                    <textarea name="description_en" class="form-control" rows="2" placeholder="Description in English..." style="border-radius: 8px;">{{ item.description_en|default:'' }}</textarea>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label small fw-bold text-secondary">Produktbild / Dish Image</label>
-                    <input type="file" name="image" class="form-control" accept="image/*" style="border-radius: 8px;">
-                    {% if item.image %}
-                        <div class="form-text text-muted mt-2 small">
-                            📁 Current: <a href="{{ item.image.url }}" target="_blank" class="text-danger fw-semibold text-decoration-none">{{ item.image.name }}</a>
-                        </div>
+                <h3 class="fw-bold mb-1" style="font-family:Georgia,serif;">
+                    {% if item %}
+                        {% if lang == 'de' %}📝 Speise bearbeiten{% else %}📝 Edit Menu Item{% endif %}
+                    {% else %}
+                        {% if lang == 'de' %}🍲 Neue Speise hinzufügen{% else %}🍲 Add New Dish{% endif %}
                     {% endif %}
-                </div>
-                
-                <button type="submit" class="btn btn-danger w-100 fw-bold py-2.5 text-uppercase tracking-wider shadow-sm mt-2" style="border-radius: 8px;">
-                    Speichern / Save Item Configuration
-                </button>
-            </form>
-            
+                </h3>
+                <p class="mb-0 text-white-50">
+                    {% if lang == 'de' %}Ganesha Menü-Verwaltung{% else %}Ganesha Menu Management{% endif %}
+                </p>
+            </div>
+
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Dish Names Inputs Block -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-secondary">
+                                {% if lang == 'de' %}Name der Speise (Deutsch){% else %}Dish Name (German){% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">🇩🇪</span>
+                                <input type="text" name="name_de" class="form-control" value="{{ item.name_de|default:'' }}" placeholder="{% if lang == 'de' %}z.B. Butter Chicken{% else %}e.g. Butter Chicken{% endif %}" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-secondary">
+                                {% if lang == 'de' %}Name der Speise (Englisch){% else %}Dish Name (English){% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">🇬🇧</span>
+                                <input type="text" name="name_en" class="form-control" value="{{ item.name_en|default:'' }}" placeholder="{% if lang == 'de' %}z.B. Butter Chicken{% else %}e.g. Butter Chicken{% endif %}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dropdowns Taxonomy Selectors -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">
+                                {% if lang == 'de' %}Steuerklasse / MwSt.{% else %}Tax Allocation / VAT{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">💶</span>
+                                <select name="item_type" class="form-select fw-semibold" required>
+                                    <option value="FOOD" {% if item.item_type == 'FOOD' or not item %}selected{% endif %}>
+                                        {% if lang == 'de' %}🍛 Speise / Essen (7% MwSt.){% else %}🍛 Food Items (7% MwSt.){% endif %}
+                                    </option>
+                                    <option value="BEVERAGE" {% if item.item_type == 'BEVERAGE' %}selected{% endif %}>
+                                        {% if lang == 'de' %}🧃 Getränk (19% MwSt.){% else %}🧃 Beverages (19% MwSt.){% endif %}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">
+                                {% if lang == 'de' %}Klassifizierung / Ernährungsform{% else %}Classification / Diet Type{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">🌱</span>
+                                <select name="diet_type" class="form-select" required>
+                                    <option value="VEG" {% if item.diet_type == 'VEG' %}selected{% endif %}>
+                                        {% if lang == 'de' %}Vegetarisch 🟢{% else %}Vegetarian 🟢{% endif %}
+                                    </option>
+                                    <option value="NON_VEG" {% if item.diet_type == 'NON_VEG' %}selected{% endif %}>
+                                        {% if lang == 'de' %}Nicht-Vegetarisch 🔴{% else %}Non-Vegetarian 🔴{% endif %}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Setting Block -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary">
+                            {% if lang == 'de' %}Preis / Aktueller Preis{% else %}Price / Current Price{% endif %}
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-warning fw-bold">€</span>
+                            <input type="number" step="0.01" name="price" class="form-control fw-bold" value="{{ item.price|default:'' }}" placeholder="0.00" required>
+                        </div>
+                    </div>
+
+                    <!-- German Description Block -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">
+                            {% if lang == 'de' %}Beschreibung (Deutsch){% else %}Description (German){% endif %}
+                        </label>
+                        <textarea name="description_de" class="form-control" rows="3" placeholder="{% if lang == 'de' %}Beschreibung auf Deutsch eingeben...{% else %}Enter description in German...{% endif %}">{{ item.description_de|default:'' }}</textarea>
+                    </div>
+
+                    <!-- English Description Block -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary">
+                            {% if lang == 'de' %}Beschreibung (Englisch){% else %}Description (English){% endif %}
+                        </label>
+                        <textarea name="description_en" class="form-control" rows="3" placeholder="{% if lang == 'de' %}Beschreibung auf Englisch eingeben...{% else %}Enter description in English...{% endif %}">{{ item.description_en|default:'' }}</textarea>
+                    </div>
+
+                    <!-- File Attachment Upload Block -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary">
+                            {% if lang == 'de' %}Produktbild / Bild hochladen{% else %}Product Image / Upload Dish Image{% endif %}
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">🖼️</span>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                        </div>
+                        {% if item.image %}
+                        <div class="alert alert-light border mt-3 mb-0 small shadow-sm rounded-3">
+                            📁 {% if lang == 'de' %}Aktuelles Bild:{% else %}Current Image:{% endif %}
+                            <a href="{{ item.image.url }}" target="_blank" class="text-danger fw-semibold text-decoration-none transition-link ms-1">
+                                {{ item.image.name }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action Submission Button -->
+                    <button type="submit" class="btn btn-danger w-100 fw-bold py-3 rounded-pill shadow-sm text-uppercase">
+                        <i class="bi bi-save2 me-1"></i> 
+                        {% if lang == 'de' %}Konfiguration Speichern{% else %}Save Item Configuration{% endif %}
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
+
 {% endblock %}

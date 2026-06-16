@@ -1,143 +1,187 @@
 {% extends 'booking/base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h3 class="fw-bold text-dark font-monospace mb-1">📥 Today's Active Orders Pipeline</h3>
-        <p class="text-muted small mb-0">Live tracking queue for active kitchen and delivery logistics operations. Click any row to view full items.</p>
+        <h3 class="fw-bold text-dark mb-1" style="font-family:Georgia,serif;">
+            {% if lang == 'de' %}📥 Heutige aktive Bestellungen{% else %}📥 Today's Active Orders{% endif %}
+        </h3>
+        <p class="text-muted small mb-0">
+            {% if lang == 'de' %}Live-Verfolgung für Küche und Lieferung. Doppelklick auf Zeile für Details.{% else %}Live kitchen and delivery tracking dashboard. Double click order row for details.{% endif %}
+        </p>
     </div>
-    <a href="{% url 'hotel_management' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Back to Central Cockpit</a>
+    <a href="{% url 'hotel_management' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-arrow-left-circle me-1"></i>{% if lang == 'de' %}Zurück zum Cockpit{% else %}Back To Cockpit{% endif %}
+    </a>
 </div>
 
-<div class="card p-4 bg-white shadow-sm border-0" style="border-radius: 12px;">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light small text-uppercase">
-                <tr>
-                    <th>Order ID</th>
-                    <th>Placed Time</th>
-                    <th>Client Contact</th>
-                    <th>Fulfillment</th>
-                    <th>Amount</th>
-                    <th style="min-width: 320px;">Logistics Management</th>
-                    <th>Invoice</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr data-bs-toggle="collapse" 
-                    data-bs-target="#today-details-{{ order.id }}" 
-                    aria-expanded="false" 
-                    class="order-parent-row border-start border-4 {% if order.status == 'PLACED' %}table-warning border-warning{% else %}border-transparent{% endif %}"
-                    style="cursor: pointer;">
-                    
-                    <td><b>#{{ order.id }}</b> <i class="bi bi-chevron-down text-muted small ms-1"></i></td>
-                    <td><small class="text-muted font-monospace fw-bold">{{ order.created_at|time:"H:i" }} Uhr</small></td>
-                    <td>
-                        <strong>{{ order.user.first_name }} {{ order.user.last_name }}</strong><br>
-                        <small class="text-muted">📞 {{ order.phone_number }}</small>
-                    </td>
-                    <td><span class="badge bg-dark px-2.5 py-1.5 rounded-pill">{{ order.get_order_type_display }}</span></td>
-                    <td class="text-success fw-bold">€{{ order.final_amount }}</td>
-                    
-                    <td onclick="event.stopPropagation();">
-                        <form method="POST" action="{% url 'update_order_logistics' order.id %}" class="d-flex gap-1 align-items-center m-0 p-0">
-                            {% csrf_token %}
-                            
-                            <select name="estimated_time" class="form-select form-select-sm border-secondary-subtle" style="width: 130px;">
-                                <option value="40-45 Mins" {% if order.estimated_time == "40-45 Mins" %}selected{% endif %}>🕒 40-45 Min</option>
-                                <option value="30-40 Mins" {% if order.estimated_time == "30-40 Mins" %}selected{% endif %}>🕒 30-40 Min</option>
-                                <option value="20-30 Mins" {% if order.estimated_time == "20-30 Mins" %}selected{% endif %}>🕒 20-30 Min</option>
-                                <option value="Ready / Bereit" {% if order.estimated_time == "Ready / Bereit" %}selected{% endif %}>✅ Ready</option>
-                            </select>
-                            
-                            <div class="d-flex flex-column gap-1">
-                                <select name="status" class="form-select form-select-sm border-secondary-subtle" style="width: 120px;">
-                                    <option value="PLACED" {% if order.status == 'PLACED' %}selected{% endif %}>Received</option>
-                                    <option value="PREPARING" {% if order.status == 'PREPARING' %}selected{% endif %}>Kitchen</option>
-                                    <option value="OUT_FOR_DELIVERY" {% if order.status == 'OUT_FOR_DELIVERY' %}selected{% endif %}>On Way</option>
-                                    <option value="DELIVERED" {% if order.status == 'DELIVERED' %}selected{% endif %}>Completed</option>
-                                    <option value="CANCELLED" {% if order.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+<div class="card border-0 shadow-lg rounded-5 bg-white overflow-hidden">
+    <div class="card-body p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light small text-uppercase">
+                    <tr>
+                        <th>{% if lang == 'de' %}Bestellung{% else %}Order{% endif %}</th>
+                        <th>{% if lang == 'de' %}Uhrzeit{% else %}Time{% endif %}</th>
+                        <th>{% if lang == 'de' %}Kunde{% else %}Customer{% endif %}</th>
+                        <th>{% if lang == 'de' %}Typ{% else %}Mode{% endif %}</th>
+                        <th>Total</th>
+                        <th style="min-width:320px;">{% if lang == 'de' %}Logistik / Statussteuerung{% else %}Logistics{% endif %}</th>
+                        <th>{% if lang == 'de' %}Beleg{% else %}Invoice{% endif %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <!-- 🚀 UPDATED: UI Collapse hooks removed to allow absolute custom Double Click JS overrides -->
+                    <tr data-target-collapse="#today-details-{{ order.id }}" 
+                        class="order-parent-row {% if order.status == 'PLACED' %}table-warning border-warning{% else %}border-transparent{% endif %}" 
+                        style="cursor:pointer; user-select: none;">
+                        <td><span class="badge bg-dark rounded-pill px-3">#{{ order.id }}</span> <i class="bi bi-chevron-down text-muted small ms-1"></i></td>
+                        <td><small class="fw-bold font-monospace">{{ order.created_at|time:"H:i" }} Uhr</small></td>
+                        <td><b>{{ order.user.first_name }} {{ order.user.last_name }}</b><br><small class="text-muted">📞 {{ order.phone_number }}</small></td>
+                        <td><span class="badge bg-dark rounded-pill px-3">{{ order.get_order_type_display }}</span></td>
+                        <td class="text-success fw-bold fs-6">€{{ order.final_amount }}</td>
+                        
+                        <!-- Form Control Cell Interface -->
+                        <td class="logistics-cell">
+                            <form method="POST" action="{% url 'update_order_logistics' order.id %}" class="d-flex gap-2 align-items-start m-0 p-0">
+                                {% csrf_token %}
+                                <select name="estimated_time" class="form-select form-select-sm rounded-pill" style="width:130px;">
+                                    <option value="40-45 Mins" {% if order.estimated_time == "40-45 Mins" %}selected{% endif %}>🕒 40-45 Min</option>
+                                    <option value="30-40 Mins" {% if order.estimated_time == "30-40 Mins" %}selected{% endif %}>🕒 30-40 Min</option>
+                                    <option value="20-30 Mins" {% if order.estimated_time == "20-30 Mins" %}selected{% endif %}>🕒 20-30 Min</option>
+                                    <option value="Ready / Bereit" {% if order.estimated_time == "Ready / Bereit" %}selected{% endif %}>✅ {% if lang == 'de' %}Bereit{% else %}Ready{% endif %}</option>
                                 </select>
-                                
-                                {% if order.status == 'CANCELLED' %}
-                                    {% if order.canceled_by == 'CUSTOMER' %}
-                                        <span class="badge bg-danger-subtle text-danger border border-danger font-monospace px-2 py-0.5" style="font-size: 0.68rem;">👤 By Customer</span>
-                                    {% else %}
-                                        <span class="badge bg-dark-subtle text-dark border border-dark font-monospace px-2 py-0.5" style="font-size: 0.68rem;">👑 By Staff</span>
+                                <div class="d-flex flex-column gap-1">
+                                    <select name="status" class="form-select form-select-sm rounded-pill" style="width:120px;">
+                                        <option value="PLACED" {% if order.status == 'PLACED' %}selected{% endif %}>{% if lang == 'de' %}Eingegangen{% else %}Received{% endif %}</option>
+                                        <option value="PREPARING" {% if order.status == 'PREPARING' %}selected{% endif %}>{% if lang == 'de' %}Küche{% else %}Kitchen{% endif %}</option>
+                                        <option value="OUT_FOR_DELIVERY" {% if order.status == 'OUT_FOR_DELIVERY' %}selected{% endif %}>{% if lang == 'de' %}Unterwegs{% else %}On Way{% endif %}</option>
+                                        <option value="DELIVERED" {% if order.status == 'DELIVERED' %}selected{% endif %}>{% if lang == 'de' %}Geliefert{% else %}Completed{% endif %}</option>
+                                        <option value="CANCELLED" {% if order.status == 'CANCELLED' %}selected{% endif %}>{% if lang == 'de' %}Storniert{% else %}Cancelled{% endif %}</option>
+                                    </select>
+                                    {% if order.status == 'CANCELLED' %}
+                                        {% if order.canceled_by == 'CUSTOMER' %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill">👤 {% if lang == 'de' %}Durch Gast{% else %}By Customer{% endif %}</span>
+                                        {% else %}
+                                        <span class="badge bg-dark-subtle text-dark border border-dark rounded-pill">👑 {% if lang == 'de' %}Durch Team{% else %}By Staff{% endif %}</span>
+                                        {% endif %}
                                     {% endif %}
-                                {% endif %}
-                            </div>
-                            
-                            <button type="submit" class="btn btn-sm btn-dark font-monospace px-2 align-self-start">Update</button>
-                        </form>
-                    </td>
-                    <td onclick="event.stopPropagation();">
-                        <a href="{% url 'view_bill' order.id %}" class="btn btn-outline-dark btn-sm rounded-pill px-3" target="_blank">
-                            Open Bill 📄
-                        </a>
-                    </td>
-                </tr>
-
-                <tr class="collapse" id="today-details-{{ order.id }}" style="background-color: #fafbfc;">
-                    <td colspan="7" class="p-3 border-start border-end border-bottom">
-                        <div class="p-3 bg-white rounded border shadow-sm">
-                            <div class="row g-3">
-                                <div class="col-md-6 border-end">
-                                    <h6 class="fw-bold text-danger border-bottom pb-1 mb-2"><i class="bi bi-cart-check-fill me-1.5"></i>Products Breakdown Matrix</h6>
-                                    <table class="table table-sm table-borderless m-0">
-                                        <thead class="text-secondary small border-bottom">
-                                            <tr>
-                                                <th>Dish / Item Name</th>
-                                                <th class="text-center">Qty</th>
-                                                <th class="text-end">Unit</th>
-                                                <th class="text-end">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for item in order.items.all %}
-                                            <tr class="small">
-                                                <td class="fw-bold text-dark">{{ item.food_item_name }}</td>
-                                                <td class="text-center fw-bold text-muted">x{{ item.quantity }}</td>
-                                                <td class="text-end text-secondary">€{{ item.unit_price }}</td>
-                                                <td class="text-end fw-bold text-dark">€{{ item.total_price }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                            <tr class="border-top small">
-                                                <td colspan="3" class="text-end text-muted">Subtotal:</td>
-                                                <td class="text-end text-dark font-monospace">€{{ order.subtotal }}</td>
-                                            </tr>
-                                            <tr class="small">
-                                                <td colspan="3" class="text-end text-muted">German MwSt Split Tax:</td>
-                                                <td class="text-end text-dark font-monospace">€{{ order.gst_amount }}</td>
-                                            </tr>
-                                            <tr class="border-top fw-bold fs-6">
-                                                <td colspan="3" class="text-end text-success">Total Bill Cost:</td>
-                                                <td class="text-end text-success font-monospace">€{{ order.final_amount }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
                                 </div>
-                                <div class="col-md-6">
-                                    <h6 class="fw-bold text-dark border-bottom pb-1 mb-2"><i class="bi bi-geo-alt-fill me-1.5"></i>Fulfillment Parameters Log</h6>
-                                    <div class="small">
-                                        <p class="mb-1"><strong>👤 Client Name:</strong> {{ order.user.first_name }} {{ order.user.last_name }} (ID: @{{ order.user.username }})</p>
-                                        <p class="mb-1"><strong>📧 Email Address:</strong> {{ order.user.email|default:"None Provided" }}</p>
-                                        <p class="mb-1"><strong>📍 Destination Target Address:</strong> <span class="text-secondary font-monospace">{{ order.delivery_address }}</span></p>
-                                        <p class="mb-1"><strong>💳 Selected Payment Route:</strong> <span class="badge bg-secondary-subtle text-secondary border px-2 py-0.5">{{ order.get_payment_method_display }}</span></p>
-                                        <p class="mb-0"><strong>📦 Distribution Type:</strong> <span class="badge bg-dark px-2 py-0.5">{{ order.get_order_type_display }}</span></p>
+                                <button type="submit" class="btn btn-sm btn-dark rounded-pill px-3">{% if lang == 'de' %}Speichern{% else %}Update{% endif %}</button>
+                            </form>
+                        </td>
+                        
+                        <td>
+                            <!-- 🚀 SINGLE CLICK NAVIGATION SHORTCUT: Instantly routes managers to the view_bill invoice subpage -->
+                            <a href="{% url 'view_bill' order.id %}" class="btn btn-shortcut-bill btn-outline-dark btn-sm rounded-pill px-3" target="_blank">
+                                {% if lang == 'de' %}Rechnung 📄{% else %}Bill 📄{% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    
+                    <!-- Nested Drawer Details Layout -->
+                    <tr class="collapse-detail-row d-none" id="today-details-{{ order.id }}">
+                        <td colspan="7" class="p-3 bg-light">
+                            <div class="p-3 bg-white rounded-4 border shadow-sm">
+                                <div class="row g-3">
+                                    <div class="col-md-6 border-end">
+                                        <h6 class="fw-bold text-danger border-bottom pb-2 mb-2">
+                                            <i class="bi bi-cart-check-fill me-1"></i>
+                                            {% if lang == 'de' %}Artikelliste Aufschlüsselung{% else %}Products Breakdown{% endif %}
+                                        </h6>
+                                        <table class="table table-sm table-borderless m-0">
+                                            <tbody>
+                                                {% for item in order.items.all %}
+                                                <tr class="small">
+                                                    <td class="fw-bold text-dark">{{ item.food_item_name }}</td>
+                                                    <td class="text-center text-muted fw-bold">x{{ item.quantity }}</td>
+                                                    <td class="text-end text-secondary">€{{ item.total_price }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                                <tr class="border-top fw-bold">
+                                                    <td colspan="2" class="text-end text-success">{% if lang == 'de' %}Gesamtsumme{% else %}Total{% endif %}:</td>
+                                                    <td class="text-end text-success font-monospace">€{{ order.final_amount }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">
+                                            <i class="bi bi-geo-alt-fill me-1"></i>
+                                            {% if lang == 'de' %}Kunden Metadaten-Log{% else %}Customer Details{% endif %}
+                                        </h6>
+                                        <p class="small mb-1"><b>Name:</b> {{ order.user.first_name }} {{ order.user.last_name }}</p>
+                                        <p class="small mb-1"><b>Email:</b> {{ order.user.email|default:"None Provided" }}</p>
+                                        <p class="small mb-1"><b>📍 {% if lang == 'de' %}Lieferadresse{% else %}Address{% endif %}:</b> <span class="text-secondary font-monospace">{{ order.delivery_address }}</span></p>
+                                        <span class="badge bg-secondary-subtle text-secondary border mt-1">{{ order.get_payment_method_display }}</span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center py-4 text-muted">No active orders cooking in the kitchen right now.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-basket fs-2 d-block mb-2"></i>
+                            {% if lang == 'de' %}Zurzeit liegen keine aktiven Bestellungen vor.{% else %}No active orders right now.{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<!-- JavaScript DOM Double Click Routing Controllers -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const rows = document.querySelectorAll(".order-parent-row");
+    
+    rows.forEach(row => {
+        // 🚀 LISTEN EXPLICITLY FOR DOUBLE CLICKS TO EXPAND CRATE BREAKDOWNS
+        row.addEventListener("dblclick", function(e) {
+            const targetedCollapseSelector = this.getAttribute("data-target-collapse");
+            const detailContainerRow = document.querySelector(targetedCollapseSelector);
+            
+            if (detailContainerRow) {
+                if (detailContainerRow.classList.contains("d-none")) {
+                    detailContainerRow.classList.remove("d-none");
+                    this.querySelector(".bi-chevron-down").style.transform = "rotate(180deg)";
+                } else {
+                    detailContainerRow.classList.add("d-none");
+                    this.querySelector(".bi-chevron-down").style.transform = "rotate(0deg)";
+                }
+            }
+        });
+
+        // Block click event bubbling inside logistical configuration parameters
+        const logisticsZone = row.querySelector(".logistics-cell");
+        if (logisticsZone) {
+            logisticsZone.addEventListener("click", function(e) { e.stopPropagation(); });
+            logisticsZone.addEventListener("dblclick", function(e) { e.stopPropagation(); });
+        }
+
+        // Block click event bubbling on single click invoice links
+        const billShortcutBtn = row.querySelector(".btn-shortcut-bill");
+        if (billShortcutBtn) {
+            billShortcutBtn.addEventListener("click", function(e) { e.stopPropagation(); });
+            billShortcutBtn.addEventListener("dblclick", function(e) { e.stopPropagation(); });
+        }
+    });
+});
+</script>
+
+<style>
+.order-parent-row{transition: background-color 0.15s ease;}
+.order-parent-row:hover{background-color: rgba(0, 0, 0, 0.015) !important;}
+.table td,.table th{white-space:nowrap}
+.bi-chevron-down {transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);}
+.collapse-detail-row { animation: drawerSlideIn 0.2s ease-out forwards; }
+@keyframes drawerSlideIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media(max-width:768px){.table td,.table th{font-size:.8rem}}
+</style>
 {% endblock %}

@@ -1,89 +1,110 @@
 {% extends 'booking/base.html' %}
+{% load dict_filters %}
 {% block content %}
 
-<div class="p-5 mb-5 bg-dark text-white rounded-3 position-relative shadow" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80') center/cover;">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h1 class="display-4 fw-bold text-warning" style="font-family: 'Georgia', serif;">Ganesha</h1>
-            <p class="fs-5 italic text-light opacity-75">Sri-Lanka & Indien in Munderkingen</p>
+<!-- Hero Banner Header Section -->
+<div class="p-5 mb-5 text-white rounded-5 shadow-lg" style="background:linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.75)),url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80') center/cover;">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <span class="badge bg-warning text-dark px-3 py-2 mb-3">
+                🍛 {% if lang == 'de' %}Authentischer Geschmack{% else %}Authentic Taste{% endif %}
+            </span>
+            <h1 class="display-2 fw-bold text-warning" style="font-family:Georgia,serif;">Ganesha</h1>
+            <p class="fs-4 text-light mb-1">
+                {% if lang == 'de' %}Sri-Lanka & Indien in Munderkingen{% else %}Sri-Lanka & India in Munderkingen{% endif %}
+            </p>
+            <p class="text-white-50 mb-0">
+                {% if lang == 'de' %}Traditionelle Aromen frisch an Ihren Tisch geliefert{% else %}Traditional flavours delivered fresh to your table{% endif %}
+            </p>
         </div>
-        <div class="bg-white p-2 rounded shadow-sm d-flex gap-1">
-            <a href="/set-language/?lang=de" class="btn btn-sm {% if lang == 'de' %}btn-danger{% else %}btn-light{% endif %} fw-bold">DE 🇩🇪</a>
-            <a href="/set-language/?lang=en" class="btn btn-sm {% if lang == 'en' %}btn-danger{% else %}btn-light{% endif %} fw-bold">EN 🇬🇧</a>
+        <div class="col-md-4 text-md-end mt-4 mt-md-0">
+            <div class="bg-white rounded-pill shadow p-2 d-inline-flex gap-2">
+                <a href="/set-language/?lang=de" class="btn rounded-pill px-4 {% if lang == 'de' %}btn-danger{% else %}btn-light{% endif %}">🇩🇪 DE</a>
+                <a href="/set-language/?lang=en" class="btn rounded-pill px-4 {% if lang == 'en' %}btn-danger{% else %}btn-light{% endif %}">🇬🇧 EN</a>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Manager Control Dashboard Layer -->
 {% if user.is_staff %}
-<div class="card p-4 border-0 shadow-sm mb-5 bg-white border-start border-warning border-4">
-    <h5 class="fw-bold text-dark mb-3">👑 Ganesha Manager Dashboard</h5>
-    <div class="row g-3">
-        <div class="col-md-3">
-            <a href="{% url 'hotel_management' %}" class="btn btn-dark w-100 py-2 font-weight-bold">🧑‍🍳 Kitchen Orders Live Desk</a>
-        </div>
-        <div class="col-md-3">
-            <a href="{% url 'add_menu_item' %}" class="btn btn-warning w-100 py-2 font-weight-bold">🍲 Add/Edit Menu Item</a>
-        </div>
-        <div class="col-md-3">
-            <form method="POST" action="{% url 'add_category_frontend' %}" class="input-group">
-                {% csrf_token %}
-                <input type="text" name="name_en" class="form-control form-control-sm" placeholder="Cat (EN)" required>
-                <input type="text" name="name_de" class="form-control form-control-sm" placeholder="Cat (DE)" required>
-                <button type="submit" class="btn btn-sm btn-outline-dark">+</button>
-            </form>
-        </div>
-        <div class="col-md-3">
-            <form method="POST" action="{% url 'add_coupon_frontend' %}" class="input-group">
-                {% csrf_token %}
-                <input type="text" name="code" class="form-control form-control-sm" placeholder="Coupon" required>
-                <input type="number" name="discount_percentage" class="form-control form-control-sm" placeholder="%" required>
-                <button type="submit" class="btn btn-sm btn-outline-success">+</button>
-            </form>
+<div class="card shadow-lg border-0 rounded-4 mb-5">
+    <div class="card-body p-4">
+        <h4 class="fw-bold mb-4">
+            {% if lang == 'de' %}👑 Ganesha Verwalter-Dashboard{% else %}👑 Ganesha Manager Dashboard{% endif %}
+        </h4>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{% url 'hotel_management' %}" class="btn btn-dark w-100 rounded-pill shadow">
+                    🧑‍🍳 {% if lang == 'de' %}Küchenbestellungen{% else %}Kitchen Orders{% endif %}
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'add_menu_item' %}" class="btn btn-warning w-100 rounded-pill shadow">
+                    🍲 {% if lang == 'de' %}Menü hinzufügen{% else %}Add Menu{% endif %}
+                </a>
+            </div>
+            <div class="col-md-3">
+                <form method="POST" action="{% url 'add_category_frontend' %}" class="input-group shadow-sm">
+                    {% csrf_token %}
+                    <input type="text" name="name_en" class="form-control" placeholder="{% if lang == 'de' %}Kat (EN){% else %}Cat (EN){% endif %}" required>
+                    <input type="text" name="name_de" class="form-control" placeholder="{% if lang == 'de' %}Kat (DE){% else %}Cat (DE){% endif %}" required>
+                    <button class="btn btn-dark">+</button>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <form method="POST" action="{% url 'add_coupon_frontend' %}" class="input-group shadow-sm">
+                    {% csrf_token %}
+                    <input type="text" name="code" class="form-control" placeholder="{% if lang == 'de' %}Gutschein{% else %}Coupon{% endif %}" required>
+                    <input type="number" name="discount_percentage" class="form-control" placeholder="%" required>
+                    <button class="btn btn-success">+</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 {% endif %}
 
+<!-- Dynamic Category & Menu Grid -->
 {% for category in categories %}
 <div class="category-section-wrapper">
-    <h3 class="fw-bold text-dark pb-2 border-bottom mt-5 category-title-node">
-        {% if lang == 'de' %}{{ category.name_de }}{% else %}{{ category.name_en }}{% endif %}
-    </h3>
-    
-    <div class="row g-4 mt-1 category-products-row">
+    <h2 class="fw-bold mb-4 mt-5 category-title-node">
+        🍽️ {% if lang == 'de' %}{{ category.name_de }}{% else %}{{ category.name_en }}{% endif %}
+    </h2>
+    <div class="row g-4 category-products-row">
         {% for item in menu_items %}
             {% if item.category == category %}
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm overflow-hidden bg-white" style="border-radius: 12px;">
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-lg rounded-4 overflow-hidden">
                     {% if item.image %}
-                        <img src="{{ item.image.url }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+                    <img src="{{ item.image.url }}" class="card-img-top" style="height:220px;object-fit:cover;">
                     {% endif %}
-                    
-                    <div class="card-body d-flex flex-column p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="fw-bold text-dark mb-0">
-                                {% if lang == 'de' %}{{ item.name_de }}{% else %}{{ item.name_en }}{% endif %}
-                            </h5>
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between gap-2">
+                            <h5 class="fw-bold mb-0">{% if lang == 'de' %}{{ item.name_de }}{% else %}{{ item.name_en }}{% endif %}</h5>
                             {% if item.diet_type == 'VEG' %}
-                                <span class="badge bg-success-subtle text-success border border-success px-2 rounded-pill small fw-bold">🟢 VEG</span>
+                            <span class="badge rounded-pill bg-success align-self-start">🟢 VEG</span>
                             {% else %}
-                                <span class="badge bg-danger-subtle text-danger border border-danger px-2 rounded-pill small fw-bold">🔴 NON-VEG</span>
+                            <span class="badge rounded-pill bg-danger align-self-start">🔴 {% if lang == 'de' %}FLEISCH{% else %}NON VEG{% endif %}</span>
                             {% endif %}
                         </div>
-                        
-                        <p class="text-muted small flex-grow-1">
+                        <p class="text-muted small flex-grow-1 mt-3">
                             {% if lang == 'de' %}{{ item.description_de }}{% else %}{{ item.description_en }}{% endif %}
                         </p>
-                        
-                        <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-3">
-                            <span class="fs-4 fw-bold text-dark">€{{ item.price }}</span>
-                            <div>
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                            <span class="fs-4 fw-bold text-danger">€{{ item.price }}</span>
+                            <div class="text-end">
                                 {% if user.is_staff %}
-                                    <a href="{% url 'edit_menu_item' item.id %}" class="btn btn-outline-secondary btn-sm me-1">Edit</a>
-                                {% endif %}
-                                <a href="{% url 'add_to_cart' item.id %}" class="btn btn-danger btn-sm px-3" style="border-radius: 6px;">
-                                    {% if lang == 'de' %}In den Warenkorb 🛒{% else %}Add to Cart 🛒{% endif %}
+                                <a href="{% url 'edit_menu_item' item.id %}" class="btn btn-outline-dark btn-sm rounded-pill me-1">
+                                    {% if lang == 'de' %}Bearbeiten{% else %}Edit{% endif %}
                                 </a>
+                                {% endif %}
+                                <button type="button" class="btn btn-danger btn-sm rounded-pill px-3 add-to-cart-btn" data-item-id="{{ item.id }}">
+                                    <span class="btn-text-label">{% if lang == 'de' %}In den Warenkorb 🛒{% else %}Add Cart 🛒{% endif %}</span>
+                                    <span class="product-counter-badge badge bg-light text-danger ms-1 rounded-circle {% if item.id not in cart_quantities %}d-none{% endif %}">
+                                        {% if item.id in cart_quantities %}{{ cart_quantities|get_item:item.id }}{% else %}0{% endif %}
+                                    </span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -96,25 +117,61 @@
 {% endfor %}
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Scrutinize every row row block container on browser execution
-        const productRows = document.querySelectorAll('.category-products-row');
-        
-        productRows.forEach(function(row) {
-            // Check if any product cards were generated into the grid layout
-            if (row.children.length === 0) {
-                // If completely empty, track down the associated text title node above it
-                const blockWrapper = row.closest('.category-section-wrapper');
-                if (blockWrapper) {
-                    const headingNode = blockWrapper.querySelector('.category-title-node');
-                    if (headingNode) {
-                        headingNode.style.setProperty('display', 'none', 'important');
+document.addEventListener("DOMContentLoaded",function(){
+    // Clear out empty categories cleanly
+    document.querySelectorAll('.category-products-row').forEach(function(row){
+        if(row.children.length===0){
+            const blockWrapper=row.closest('.category-section-wrapper');
+            if(blockWrapper){
+                const headingNode=blockWrapper.querySelector('.category-title-node');
+                if(headingNode) headingNode.style.setProperty('display','none','important');
+            }
+            row.style.setProperty('display','none','important');
+        }
+    });
+
+    // Handle asynchronous item increments cleanly
+    document.querySelectorAll('.add-to-cart-btn').forEach(button=>{
+        button.addEventListener('click',function(e){
+            e.preventDefault();
+            const itemId=this.getAttribute('data-item-id');
+            const targetUrl=`/cart/add/${itemId}/?ajax=true`;
+            const textLabel=this.querySelector('.btn-text-label');
+            const productBadge=this.querySelector('.product-counter-badge');
+            const originalText=textLabel.innerHTML;
+            
+            this.disabled=true;
+            textLabel.innerHTML="{% if lang == 'de' %}Wird hinzugefügt...⏳{% else %}Adding...⏳{% endif %}";
+            
+            fetch(targetUrl,{method:'GET',headers:{'X-Requested-With':'XMLHttpRequest'}})
+            .then(response=>response.json())
+            .then(data=>{
+                if(data.success){
+                    this.disabled=false;
+                    textLabel.innerHTML=originalText;
+                    let currentCount=parseInt(productBadge.textContent)||0;
+                    currentCount+=1;
+                    productBadge.textContent=currentCount;
+                    productBadge.classList.remove('d-none');
+                    this.classList.replace('btn-danger','btn-success');
+                    setTimeout(()=>this.classList.replace('btn-success','btn-danger'),800);
+                    
+                    const cartBadge=document.querySelector('#cart-badge-counter');
+                    if(cartBadge){
+                        const numberNode=cartBadge.querySelector('.badge-number-node');
+                        if(numberNode) numberNode.textContent=data.cart_total;
+                        else cartBadge.textContent=data.cart_total;
+                        if(data.cart_total>0) cartBadge.classList.remove('d-none');
                     }
                 }
-                // Hide the empty row layout space securely
-                row.style.setProperty('display', 'none', 'important');
-            }
+            })
+            .catch(error=>{
+                console.error('AJAX Card Increment operational failure exception logged:',error);
+                textLabel.innerHTML=originalText;
+                this.disabled=false;
+            });
         });
     });
+});
 </script>
 {% endblock %}

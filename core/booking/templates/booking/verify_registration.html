@@ -1,31 +1,73 @@
 {% extends 'booking/base.html' %}
 {% block content %}
-<div class="row justify-content-center my-5">
-    <div class="col-md-5">
-        <div class="card p-4 bg-white border-0 shadow" style="border-radius: 16px;">
-            <div class="text-center mb-4">
-                <h4 class="fw-bold text-dark" style="font-family: 'Georgia', serif;">🔒 Identity Verification</h4>
-                <p class="text-muted small">Enter the distinct codes issued to your contact nodes</p>
-                <hr style="border-top: 1px dashed #dee2e6;">
+<div class="row justify-content-center align-items-center my-5">
+    <div class="col-lg-5 col-md-7">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white">
+            <div class="bg-danger text-white text-center p-4">
+                <div class="bg-white text-danger rounded-circle d-inline-flex align-items-center justify-content-center shadow mb-3" style="width:75px;height:75px;">
+                    <i class="bi bi-envelope-open-fill fs-1"></i>
+                </div>
+                <h4 class="fw-bold mb-1" style="font-family:Georgia,serif;">
+                    {% if lang == 'de' %}E-Mail Verifizierung{% else %}Email Verification{% endif %}
+                </h4>
+                <p class="small mb-0 text-white-50">
+                    {% if lang == 'de' %}Geben Sie den an Ihre E-Mail gesendeten Code ein{% else %}Enter the security code sent to your email inbox{% endif %}
+                </p>
             </div>
-
-            {% if error %}
-                <div class="alert alert-danger py-2 small text-center">{{ error }}</div>
-            {% endif %}
-
-            <form method="POST">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary">E-Mail OTP Code 📧</label>
-                    <input type="text" name="email_otp" class="form-control text-center font-monospace fw-bold fs-5" placeholder="000000" maxlength="6" required style="border-radius: 8px; letter-spacing: 4px;">
+            
+            <div class="card-body p-4">
+                {% if error %}
+                <div class="alert alert-danger border-0 rounded-4 py-2 small text-center fw-semibold shadow-sm mb-3">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}
                 </div>
-                <div class="mb-4">
-                    <label class="form-label small fw-bold text-secondary">SMS Phone OTP Code 📱</label>
-                    <input type="text" name="phone_otp" class="form-control text-center font-monospace fw-bold fs-5" placeholder="000000" maxlength="6" required style="border-radius: 8px; letter-spacing: 4px;">
-                </div>
-                <button type="submit" class="btn btn-dark w-100 fw-bold py-2 text-uppercase" style="border-radius: 8px;">Verify Channels</button>
-            </form>
+                {% endif %}
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary">
+                            {% if lang == 'de' %}E-Mail-Bestätigungscode{% else %}Email Verification Code{% endif %}
+                        </label>
+                        <div class="input-group shadow-sm rounded-pill overflow-hidden mb-2">
+                            <span class="input-group-text bg-light border-0 text-danger">
+                                <i class="bi bi-envelope-check-fill"></i>
+                            </span>
+                            <input type="text" name="email_otp" class="form-control border-0 text-center fw-bold font-monospace fs-4 otp-input" placeholder="000000" maxlength="6" required autofocus>
+                        </div>
+                        <small class="text-muted d-block text-center mt-1">
+                            {% if lang == 'de' %}Bitte prüfen Sie auch Ihren Spam-Ordner.{% else %}Please check your spam folder if you don't see it immediately.{% endif %}
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold py-3 shadow verify-btn text-uppercase">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        {% if lang == 'de' %}Code verifizieren & Aktivieren{% else %}Verify Code & Activate{% endif %}
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+.otp-input {
+    letter-spacing: 8px;
+    padding-left: 14px; /* Recenter text block caret precisely with padding offsets */
+}
+.verify-btn {
+    transition: 0.2s ease-in-out;
+}
+.verify-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(220,53,69,0.3) !important;
+}
+.card {
+    animation: verifyFade 0.4s ease;
+}
+@keyframes verifyFade {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
 {% endblock %}

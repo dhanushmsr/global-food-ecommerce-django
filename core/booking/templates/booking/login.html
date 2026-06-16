@@ -1,80 +1,82 @@
 {% extends 'booking/base.html' %}
 {% load static %}
 {% block content %}
-<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
-    <div class="col-md-5 col-lg-4">
-        
-        <div class="card p-4 bg-white border-0 shadow-sm" style="border-radius: 16px;">
-            
-            <div class="text-center mb-4">
-                <img src="{% static 'booking/images/logo.png' %}" alt="Ganesha Logo" class="mb-3" style="height: 90px; width: auto; object-fit: contain;">
-                <h3 class="fw-bold text-dark mb-1" style="font-family: 'Georgia', serif;">Anmeldung / Login</h3>
-                <p class="text-muted small">Ganesha Restaurant Portal</p>
-                <hr style="border-top: 1px dashed #dee2e6; margin: 15px 0;">
+<div class="row justify-content-center align-items-center" style="min-height:70vh;">
+    <div class="col-lg-4 col-md-6">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white">
+            <div class="bg-danger text-white text-center p-4">
+                <img src="{% static 'booking/images/logo.png' %}" alt="Ganesha Logo" class="bg-white rounded-4 shadow p-1 mb-3" style="width:95px;height:95px;object-fit:contain;">
+                <h3 class="fw-bold mb-1" style="font-family:Georgia,serif;">
+                    {% if lang == 'de' %}Anmeldung{% else %}Login{% endif %}
+                </h3>
+                <p class="mb-0 text-white-50">Ganesha Restaurant Portal</p>
             </div>
-
-            {% if error %}
-                <div class="alert alert-danger p-2 small text-center border-0 fw-semibold mb-3" style="border-radius: 8px;">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}
+            <div class="card-body p-4">
+                {% if error %}
+                <div class="alert alert-danger rounded-4 py-2 small text-center fw-semibold border-0">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}
                 </div>
-            {% endif %}
-
-            <form method="POST">
-                {% csrf_token %}
-                
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-secondary">Telefonnummer / Phone Number</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                            <i class="bi bi-telephone"></i>
+                {% endif %}
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">
+                            {% if lang == 'de' %}Telefonnummer{% else %}Phone Number{% endif %}
+                        </label>
+                        <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                            <span class="input-group-text bg-light border-0 text-danger"><i class="bi bi-telephone-fill"></i></span>
+                            <input type="tel" name="phone" class="form-control border-0" required placeholder="{% if lang == 'de' %}z.B. 01761234567{% else %}e.g. 01761234567{% endif %}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small fw-bold text-secondary mb-0">
+                                {% if lang == 'de' %}Passwort{% else %}Password{% endif %}
+                            </label>
+                            <a href="{% url 'forgot_password' %}" class="small text-danger fw-semibold text-decoration-none">
+                                {% if lang == 'de' %}Vergessen?{% else %}Forgot?{% endif %}
+                            </a>
+                        </div>
+                        <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                            <span class="input-group-text bg-light border-0 text-danger"><i class="bi bi-shield-lock-fill"></i></span>
+                            <input type="password" id="loginPassword" name="password" class="form-control border-0" required placeholder="••••••••">
+                            <button type="button" class="input-group-text bg-light border-0 text-muted" onclick="togglePasswordVisibility('loginPassword','eyeIcon')">
+                                <i id="eyeIcon" class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger w-100 rounded-pill py-3 fw-bold shadow mb-3 text-uppercase">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> 
+                        {% if lang == 'de' %}Einloggen{% else %}Sign In{% endif %}
+                    </button>
+                    
+                    <div class="text-center pt-3 border-top">
+                        <span class="text-muted small">
+                            {% if lang == 'de' %}Neu bei Ganesha?{% else %}New Guest?{% endif %}
                         </span>
-                        <input type="tel" name="phone" class="form-control border-start-0 ps-0" required placeholder="e.g. 01761234567" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
+                        <a href="{% url 'register' %}" class="text-danger small fw-bold ms-1 text-decoration-none">
+                            <i class="bi bi-person-plus me-1"></i>{% if lang == 'de' %}Registrieren{% else %}Register{% endif %}
+                        </a>
                     </div>
-                </div>
-
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label small fw-bold text-secondary mb-0">Passwort / Password</label>
-                        <a href="{% url 'forgot_password' %}" class="small text-danger fw-semibold text-decoration-none">Passwort vergessen? / Forgot?</a>
-                    </div>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light text-muted border-end-0" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                            <i class="bi bi-shield-lock"></i>
-                        </span>
-                        <input type="password" id="loginPassword" name="password" class="form-control border-start-0 border-end-0 ps-0" required placeholder="••••••••" style="z-index: 1;">
-                        <button type="button" class="input-group-text bg-light border-start-0 text-muted" onclick="togglePasswordVisibility('loginPassword', 'eyeIcon')" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 3; cursor: pointer;">
-                            <i id="eyeIcon" class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-danger w-100 py-2.5 fw-bold text-uppercase tracking-wide shadow-sm mb-3" style="border-radius: 8px;">
-                    Einloggen / Sign In
-                </button>
-
-                <div class="text-center pt-2 border-top">
-                    <span class="text-muted small">Neu bei Ganesha? / New Guest?</span>
-                    <a href="{% url 'register' %}" class="text-danger small fw-bold ms-1 text-decoration-none">
-                        <i class="bi bi-person-plus me-1"></i>Registrieren
-                    </a>
-                </div>
-            </form>
-            
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-function togglePasswordVisibility(inputId, iconId) {
-    const passwordField = document.getElementById(inputId);
-    const eyeIcon = document.getElementById(iconId);
-    
-    if (passwordField.type === "password") {
-        passwordField.type = "text";
+function togglePasswordVisibility(inputId,iconId){
+    const passwordField=document.getElementById(inputId);
+    const eyeIcon=document.getElementById(iconId);
+    if(passwordField.type==="password"){
+        passwordField.type="text";
         eyeIcon.classList.remove("bi-eye");
         eyeIcon.classList.add("bi-eye-slash");
-    } else {
-        passwordField.type = "password";
+    }else{
+        passwordField.type="password";
         eyeIcon.classList.remove("bi-eye-slash");
         eyeIcon.classList.add("bi-eye");
     }

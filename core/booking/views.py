@@ -1,21 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.conf import settings
-from django.core.mail import send_mail # Live SMTP Mail Transfer Engine
+from django.core.mail import send_mail, EmailMessage  # Live SMTP Transfer Engine components
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
-from django.utils.timezone import localtime # 🚀 CRITICAL TIMEZONE LOCALIZATION HOOK
-from django.db import models          # Injects models namespace for Q objects
+from django.utils.timezone import localtime  # 🚀 CRITICAL TIMEZONE LOCALIZATION HOOK
+from django.db import models                  # Injects models namespace for Q objects
 from django.db.models import Sum, Count
 from .models import FoodCategory, FoodItem, Coupon, CartItem, OrderSummary, OrderBreakdownItem, UserProfile
 from decimal import Decimal
-import requests                        # Required for live OpenStreetMap reverse-geocoding API lookups
-from twilio.rest import Client          # Live Virtual Cellular API SDK
-from django.core.mail import EmailMessage # Injects robust HTML message packaging engines
-from django.template.loader import render_to_string # Injects compile layout parser utilities
-import threading # Runs email delivery on a background thread so the UI never freezes
+import requests                          # Required for live OpenStreetMap reverse-geocoding API lookups
+from twilio.rest import Client           # Live Virtual Cellular API SDK
+from django.template.loader import render_to_string  # Injects compile layout parser utilities
+import threading  # Runs email delivery on a background thread so the UI never freezes
+import random
+import re
 
 # =====================================================================
 # LIVE NETWORK DISPATCH UTILITY INFRASTRUCTURE
@@ -23,14 +24,20 @@ import threading # Runs email delivery on a background thread so the UI never fr
 def send_live_sms_gateway(to_number, otp_code):
     """
     Routes real-time verification codes over active mobile cellular networks via Twilio.
+    Defensively strips hidden whitespaces from credentials to prevent 20003 authentication drops.
     Bypasses gracefully to terminal logs if credentials are unassigned.
     """
     try:
         if hasattr(settings, 'TWILIO_ACCOUNT_SID') and settings.TWILIO_ACCOUNT_SID and not settings.TWILIO_ACCOUNT_SID.startswith('ACxxx'):
-            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            # Dynamic whitespace stripping to protect authentication headers
+            account_sid = settings.TWILIO_ACCOUNT_SID.strip()
+            auth_token = settings.TWILIO_AUTH_TOKEN.strip()
+            twilio_from = settings.TWILIO_PHONE_NUMBER.strip()
+            
+            client = Client(account_sid, auth_token)
             client.messages.create(
                 body=f"Ganesha Safe Code: {otp_code}. Valid for 10 minutes. Please do not share this token.",
-                from_=settings.TWILIO_PHONE_NUMBER,
+                from_=twilio_from,
                 to=to_number
             )
             print(f"📱 [NETWORK SUCCESS] Real-time cellular SMS routed to {to_number}")
@@ -38,6 +45,27 @@ def send_live_sms_gateway(to_number, otp_code):
             print(f"\n📱 [SETTINGS WARNING] Twilio unconfigured. Phone OTP text for {to_number}: {otp_code}\n")
     except Exception as e:
         print(f"⚠️ Live cellular SMS network routing failure alert log: {e}")
+
+
+def send_async_registration_notifications(first_name, email, email_otp, phone, phone_otp):
+    """
+    Executes non-blocking email token distribution via multi-threaded dispatch architecture.
+    """
+    # Channel A: Real-Time SMTP Network Dispatch
+    email_subject = "Ganesha Portal - Identity Verification Action Required"
+    email_body = f"Namaste {first_name},\n\nThank you for registering at Ganesha! To activate your digital profile, use the verification key below:\n\nVerification Code: {email_otp}\n\nThis token is valid for 10 minutes."
+    
+    try:
+        send_mail(
+            subject=email_subject,
+            message=email_body,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@ganesha.com'),
+            recipient_list=[email],
+            fail_silently=False,
+        )
+        print(f"📧 [NETWORK SUCCESS] Real-time SMTP transmission routed to {email}")
+    except Exception as e:
+        print(f"\n📧 [SETTINGS WARNING] SMTP Server failure. Email registration code for {email}: {email_otp}\nDetail: {e}")
 
 
 # =====================================================================
@@ -54,46 +82,63 @@ def set_language(request):
 
 
 # =====================================================================
-# 2. GUEST AUTHENTICATION & MULTI-CHANNEL LIVE OTP SIGN-UP
+# 2. GUEST AUTHENTICATION & EMAIL-ONLY LIVE OTP SIGN-UP
 # =====================================================================
 def register_user(request):
     error = None
     if request.method == 'POST':
         country_code = request.POST.get('country_code', '+49').strip()
         phone_raw = request.POST.get('phone_raw', '').strip()
-        email = request.POST.get('email')
+        email = request.POST.get('email', '').strip()
         password = request.POST.get('password')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        address = request.POST.get('address')
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        address = request.POST.get('address', '').strip()
         
-        # 🚀 Strips accidental leading zero input errors out dynamically
         if phone_raw.startswith('0'):
             phone_raw = phone_raw[1:]
             
-        # Compile country prefix elements with the raw mobile digits cleanly
         phone = country_code + phone_raw
         
-        if User.objects.filter(username=phone).exists():
+        # 🚀 STRICT BACKEND PASSWORD VALIDATION MATRIX
+        if len(password) < 8:
+            error = "Password must be at least 8 characters long. / Mindestens 8 Zeichen erforderlich."
+        elif not re.search(r'[A-Z]', password):
+            error = "Password must contain at least one uppercase letter. / Mindestens ein Großbuchstabe erforderlich."
+        elif not re.search(r'[!@#$%^&*(),.?":{}|<>_+-]', password):
+            error = "Password must contain at least one special character. / Mindestens ein Sonderzeichen erforderlich."
+        
+        # PRE-FLIGHT GUARD LAYER: Check DB tables
+        elif User.objects.filter(username=phone).exists():
             error = "This phone number is already registered. / Diese Nummer ist bereits registriert."
         elif User.objects.filter(email=email).exists():
             error = "This email is already registered. / Diese E-Mail ist bereits registriert."
         else:
-            user = User.objects.create_user(
-                username=phone, 
-                email=email,
-                password=password,
-                first_name=first_name, 
-                last_name=last_name
-            )
-            profile = UserProfile.objects.create(user=user, phone_number=phone, address=address)
-            profile.generate_registration_otps()
+            email_otp = str(random.randint(100000, 999999))
+            expiry_time = timezone.now() + timezone.timedelta(minutes=10)
+            expiry_string = expiry_time.isoformat()
+
+            request.session['pending_registration_data'] = {
+                'username': phone,
+                'email': email,
+                'password': password,
+                'first_name': first_name,
+                'last_name': last_name,
+                'address': address,
+                'email_otp': email_otp,
+                'otp_expiry': expiry_string
+            }
             
-            # 🚀 CHANNEL A: REAL-TIME GMAIL SMTP NETWORK DISPATCH
-            email_subject = "Ganesha Portal - Identity Verification Action Required"
-            email_body = f"Namaste {first_name},\n\nThank you for registering at Ganesha! To activate your digital profile, use the verification key below:\n\nVerification Code: {profile.registration_email_otp}\n\nThis token is valid for 10 minutes."
+            print("\n" + "═"*60)
+            print(f"📧 GANESHA MANDATORY REGISTRATION LOGS")
+            print(f"👤 Guest: {first_name} | 📬 Email Target: {email}")
+            print(f"🔑 DIRECT COPY VERIFICATION CODE: {email_otp}")
+            print("═"*60 + "\n")
             
             try:
+                email_subject = "Ganesha Portal - Identity Verification Action Required"
+                email_body = f"Namaste {first_name},\n\nThank you for registering at Ganesha! To activate your digital profile, use the verification key below:\n\nVerification Code: {email_otp}\n\nThis token is valid for 10 minutes."
+                
                 send_mail(
                     subject=email_subject,
                     message=email_body,
@@ -101,46 +146,53 @@ def register_user(request):
                     recipient_list=[email],
                     fail_silently=False,
                 )
-                print(f"📧 [NETWORK SUCCESS] Real-time SMTP transmission routed to {email}")
-            except Exception as e:
-                print(f"\n📧 [SETTINGS WARNING] SMTP Server failure. Email registration code for {email}: {profile.registration_email_otp}\nDetail: {e}")
-            
-            # 🚀 CHANNEL B: REAL-TIME SMS SMART ROUTING VIA CELLULAR API
-            send_live_sms_gateway(phone, profile.registration_phone_otp)
-            
-            request.session['pending_verification_user_id'] = user.id
-            return redirect('verify_registration')
+                return redirect('verify_registration')
+                
+            except Exception as smtp_error:
+                error = f"Gmail Mail Gateway Refused Connection: {str(smtp_error)}"
+                print(f"❌ SMTP Fatal Handshake Intercept: {smtp_error}")
             
     return render(request, 'booking/register.html', {'error': error})
 
 
 def verify_registration(request):
-    user_id = request.session.get('pending_verification_user_id')
-    if not user_id:
+    reg_data = request.session.get('pending_registration_data')
+    if not reg_data:
         return redirect('register')
         
-    user = get_object_or_404(User, id=user_id)
-    profile = user.profile
     error = None
     
     if request.method == 'POST':
         email_otp = request.POST.get('email_otp')
-        phone_otp = request.POST.get('phone_otp')
+        expiry_datetime = timezone.datetime.fromisoformat(reg_data['otp_expiry'])
         
-        if timezone.now() > profile.otp_expiry:
-            error = "Verification codes have expired. Please sign up again. / OTP abgelaufen."
-        elif profile.registration_email_otp == email_otp and profile.registration_phone_otp == phone_otp:
-            profile.email_verified = True
-            profile.phone_verified = True
-            profile.registration_email_otp = None
-            profile.registration_phone_otp = None
-            profile.save()
+        if timezone.now() > expiry_datetime:
+            error = "Verification code has expired. Please sign up again. / OTP abgelaufen."
+            del request.session['pending_registration_data']
+            return render(request, 'booking/verify_registration.html', {'error': error})
+            
+        elif reg_data['email_otp'] == email_otp:
+            user = User.objects.create_user(
+                username=reg_data['username'], 
+                email=reg_data['email'],
+                password=reg_data['password'],
+                first_name=reg_data['first_name'], 
+                last_name=reg_data['last_name']
+            )
+            
+            UserProfile.objects.create(
+                user=user, 
+                phone_number=reg_data['username'], 
+                address=reg_data['address'],
+                email_verified=True,
+                phone_verified=False  
+            )
             
             login(request, user)
-            del request.session['pending_verification_user_id']
+            del request.session['pending_registration_data']
             return redirect('home')
         else:
-            error = "Invalid combination of verification codes. / Ungültiger OTP-Code."
+            error = "Invalid verification code. / Ungültiger OTP-Code."
             
     return render(request, 'booking/verify_registration.html', {'error': error})
 
@@ -150,10 +202,8 @@ def login_user(request):
     if request.method == 'POST':
         phone = request.POST.get('phone', '').strip()
         
-        # 🚀 FIX: If it's a plain word (like 'admin'), bypass country code formatting!
         if phone and not phone.startswith('+'):
             if phone.isalpha():
-                # Keeps the raw text intact for superuser login handles
                 pass
             elif phone.startswith('0'):
                 phone = '+49' + phone[1:]
@@ -176,7 +226,7 @@ def logout_user(request):
 
 
 # =====================================================================
-# REAL-TIME PASSWORD ACCESSIBILITY LIFELINE CONTROL
+# REAL-TIME PASSWORD ACCESSIBILITY LIFELINE CONTROL (EMAIL ROUTING)
 # =====================================================================
 def forgot_password_request(request):
     error = None
@@ -194,9 +244,23 @@ def forgot_password_request(request):
         
         if profile:
             profile.generate_reset_otp()
-            send_live_sms_gateway(phone, profile.password_reset_otp)
-            request.session['reset_password_phone'] = phone
-            return redirect('forgot_password_verify')
+            
+            email_subject = "Ganesha Restaurant - Reset Security Access Token"
+            email_body = f"Namaste {profile.user.first_name},\n\nWe received a request to update your secure access password credentials. Use the security key below to complete the validation check:\n\nReset Verification Code: {profile.password_reset_otp}\n\nThis token is valid for 10 minutes."
+            
+            try:
+                send_mail(
+                    subject=email_subject,
+                    message=email_body,
+                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@ganesha.com'),
+                    recipient_list=[profile.user.email],
+                    fail_silently=False,
+                )
+                request.session['reset_password_phone'] = phone
+                return redirect('forgot_password_verify')
+            except Exception as e:
+                error = f"Mail system drop encountered: {str(e)}"
+                print(f"❌ Password recovery dispatch drop: {e}")
         else:
             error = "Phone record not identified in database. / Nummer nicht gefunden."
             
@@ -217,6 +281,14 @@ def forgot_password_verify(request):
         
         if timezone.now() > profile.otp_expiry:
             error = "Session code window expired. Please re-verify. / Link abgelaufen."
+            
+        elif len(new_password) < 8:
+            error = "Password must be at least 8 characters long. / Mindestens 8 Zeichen erforderlich."
+        elif not re.search(r'[A-Z]', new_password):
+            error = "Password must contain at least one uppercase letter. / Mindestens ein Großbuchstabe erforderlich."
+        elif not re.search(r'[!@#$%^&*(),.?":{}|<>_+-]', new_password):
+            error = "Password must contain at least one special character. / Mindestens ein Sonderzeichen erforderlich."
+            
         elif profile.password_reset_otp == otp:
             user = profile.user
             user.set_password(new_password)
@@ -238,16 +310,21 @@ def forgot_password_verify(request):
 # =====================================================================
 @login_required(login_url='login')
 def home(request):
-    """
-    Renders the dynamic menu organized by category using the active language preference.
-    """
     lang = request.session.get('lang', 'de')
     categories = FoodCategory.objects.all()
     menu_items = FoodItem.objects.filter(is_available=True)
+    
+    cart_quantities = {}
+    if request.user.is_authenticated:
+        cart_items = CartItem.objects.filter(user=request.user)
+        for item in cart_items:
+            cart_quantities[item.food_item_id] = item.quantity
+
     return render(request, 'booking/home.html', {
         'categories': categories, 
         'menu_items': menu_items,
-        'lang': lang
+        'lang': lang,
+        'cart_quantities': cart_quantities
     })
 
 
@@ -256,10 +333,6 @@ def home(request):
 # =====================================================================
 @user_passes_test(lambda u: u.is_staff)
 def add_modify_menu(request, item_id=None):
-    """
-    Handles both creation and real-time updates of dishes entirely via 
-    asynchronous modal submission, completely eliminating the standalone form page.
-    """
     item = get_object_or_404(FoodItem, id=item_id) if item_id else None
     
     if request.method == 'POST':
@@ -304,10 +377,6 @@ def add_modify_menu(request, item_id=None):
 
 @user_passes_test(lambda u: u.is_staff)
 def add_category_frontend(request):
-    """
-    Safely creates or fetches menu category configurations instantly from the home page forms
-    without crashing on duplicate UNIQUE constraint rules.
-    """
     if request.method == 'POST':
         name_en = request.POST.get('name_en', '').strip()
         name_de = request.POST.get('name_de', '').strip()
@@ -326,10 +395,6 @@ def add_category_frontend(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def add_coupon_frontend(request):
-    """
-    Safely generates promotional corporate voucher rules from the owner portal space
-    including personalized user filtering assignments and min bound parameters.
-    """
     if request.method == 'POST':
         code = request.POST.get('code', '').strip().upper()
         discount = request.POST.get('discount_percentage')
@@ -363,10 +428,21 @@ def add_coupon_frontend(request):
 def add_to_cart(request, item_id):
     food_item = get_object_or_404(FoodItem, id=item_id)
     cart_item, created = CartItem.objects.get_or_create(user=request.user, food_item=food_item)
+    
     if not created:
         cart_item.quantity += 1
         cart_item.save()
-    return redirect('view_cart')
+        
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == 'true':
+        total_items = CartItem.objects.filter(user=request.user).aggregate(total_qty=Sum('quantity'))['total_qty'] or 0
+        
+        return JsonResponse({
+            'success': True,
+            'message': f"{food_item.name_en} added!",
+            'cart_total': total_items
+        })
+        
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
 
 
 @login_required
@@ -382,7 +458,6 @@ def view_cart(request):
     coupon_obj = None
     coupon_error = None
     
-    # 1. EVALUATE PROMOTIONAL DISCOUNT RULES AND ONE-TIME EXPIRY LIMITS
     if coupon_code:
         coupon_match = Coupon.objects.filter(code__iexact=coupon_code, active=True).first()
         if coupon_match:
@@ -398,12 +473,10 @@ def view_cart(request):
         else:
             coupon_error = "Invalid or expired voucher code. / Ungültiger Gutschein."
 
-    # 2. COMPUTE SYSTEMATIC RATIO FOR ACCURATE TAX SUBTRACTION
     discount_ratio = Decimal('1.00')
     if subtotal > 0:
         discount_ratio = (subtotal - discount) / subtotal
 
-    # 3. CALCULATE GERMAN SPLIT VAT BASED ON POST-DISCOUNTED REAL VALUE
     total_vat_7 = Decimal('0.00')
     total_vat_19 = Decimal('0.00')
     
@@ -421,7 +494,6 @@ def view_cart(request):
     profile = request.user.profile
     exclusive_offers = Coupon.objects.filter(specific_user=request.user, active=True).exclude(used_by=request.user)
 
-    # 4. ORDER FINALIZATION SUBMISSION FORM (POST)
     if request.method == 'POST':
         if not cart_items.exists():
             return redirect('home')
@@ -462,9 +534,6 @@ def view_cart(request):
                 total_price=item.food_item.price * item.quantity
             )
         
-        # =====================================================================
-        # 🚀 BACKGROUND THREAD ASYNCHRONOUS EMAIL DISPATCHER
-        # =====================================================================
         if request.user.email:
             def send_async_email(current_order, user_email):
                 try:
@@ -483,7 +552,6 @@ def view_cart(request):
                     print(f"⚠️ Asynchronous checkout receipt delivery execution drop encountered: {mail_err}")
 
             threading.Thread(target=send_async_email, args=(order, request.user.email)).start()
-        # =====================================================================
         
         cart_items.delete()
         return redirect('view_bill', order_id=order.id)
@@ -524,25 +592,21 @@ def dashboard(request):
 # =====================================================================
 @user_passes_test(lambda u: u.is_staff)
 def hotel_owner_dashboard(request):
-    """
-    Central Cockpit Panel Dashboard for Ganesha.
-    Filters out completed or cancelled orders from the live active tracking queue.
-    """
     now = timezone.now()
     
     active_orders = OrderSummary.objects.filter(status__in=['PLACED', 'PREPARING', 'OUT_FOR_DELIVERY'])
     for order in active_orders:
-        elapsed_minutes = (now - order.created_at).total_seconds() / 60.0
+        box_elapsed_minutes = (now - order.created_at).total_seconds() / 60.0
         
-        if order.status == 'PLACED' and elapsed_minutes >= 2:
+        if order.status == 'PLACED' and box_elapsed_minutes >= 2:
             order.status = 'PREPARING'
             order.estimated_time = "30-40 Mins"
             order.save()
-        elif order.status == 'PREPARING' and elapsed_minutes >= 25:
+        elif order.status == 'PREPARING' and box_elapsed_minutes >= 25:
             order.status = 'OUT_FOR_DELIVERY'
             order.estimated_time = "10-20 Mins"
             order.save()
-        elif order.status == 'OUT_FOR_DELIVERY' and elapsed_minutes >= 45:
+        elif order.status == 'OUT_FOR_DELIVERY' and box_elapsed_minutes >= 45:
             order.status = 'DELIVERED'
             order.estimated_time = "Ready / Bereit"
             order.save()
@@ -585,34 +649,30 @@ def update_order_logistics(request, order_id):
         order.status = new_status
         
         if new_status == 'CANCELLED':
-            order.canceled_by = 'OWNER'  # Logs that staff canceled it
+            order.canceled_by = 'OWNER'
             
         order.save()
     return redirect(request.META.get('HTTP_REFERER', 'hotel_management'))
 
 
 def check_new_orders_api(request):
-    """
-    Background API watchdog endpoint. Scans for incoming orders and handles
-    live queue-dropping interface reloads when statuses change.
-    """
     now = timezone.now()
     active_orders = OrderSummary.objects.filter(status__in=['PLACED', 'PREPARING', 'OUT_FOR_DELIVERY'])
     has_status_shifted = False
     
     for order in active_orders:
         old_status = order.status
-        elapsed_minutes = (now - order.created_at).total_seconds() / 60.0
+        box_elapsed_minutes = (now - order.created_at).total_seconds() / 60.0
         
-        if order.status == 'PLACED' and elapsed_minutes >= 2:
+        if order.status == 'PLACED' and box_elapsed_minutes >= 2:
             order.status = 'PREPARING'
             order.estimated_time = "30-40 Mins"
             order.save()
-        elif order.status == 'PREPARING' and elapsed_minutes >= 25:
+        elif order.status == 'PREPARING' and box_elapsed_minutes >= 25:
             order.status = 'OUT_FOR_DELIVERY'
             order.estimated_time = "10-20 Mins"
             order.save()
-        elif order.status == 'OUT_FOR_DELIVERY' and elapsed_minutes >= 45:
+        elif order.status == 'OUT_FOR_DELIVERY' and box_elapsed_minutes >= 45:
             order.status = 'DELIVERED'
             order.estimated_time = "Ready / Bereit"
             order.save()
@@ -640,25 +700,21 @@ def welcome_index(request):
 # =====================================================================
 @user_passes_test(lambda u: u.is_staff)
 def owner_todays_orders(request):
-    """
-    Page 1: Today's Orders Pipeline Workspace.
-    Tracks everything generated within the current local localized calendar cycle.
-    """
     now = timezone.now()
     today_local = localtime(now).date()
     
     active_orders = OrderSummary.objects.filter(status__in=['PLACED', 'PREPARING', 'OUT_FOR_DELIVERY'])
     for order in active_orders:
-        elapsed_minutes = (now - order.created_at).total_seconds() / 60.0
-        if order.status == 'PLACED' and elapsed_minutes >= 2:
+        box_elapsed_minutes = (now - order.created_at).total_seconds() / 60.0
+        if order.status == 'PLACED' and box_elapsed_minutes >= 2:
             order.status = 'PREPARING'
             order.estimated_time = "30-40 Mins"
             order.save()
-        elif order.status == 'PREPARING' and elapsed_minutes >= 25:
+        elif order.status == 'PREPARING' and box_elapsed_minutes >= 25:
             order.status = 'OUT_FOR_DELIVERY'
             order.estimated_time = "10-20 Mins"
             order.save()
-        elif order.status == 'OUT_FOR_DELIVERY' and elapsed_minutes >= 45:
+        elif order.status == 'OUT_FOR_DELIVERY' and box_elapsed_minutes >= 45:
             order.status = 'DELIVERED'
             order.estimated_time = "Ready / Bereit"
             order.save()
@@ -672,10 +728,6 @@ def owner_todays_orders(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def owner_order_history(request):
-    """
-    Page 2: Comprehensive Closed History Log Archive.
-    Groups ALL past transactions historically segregated by distinct local day dates.
-    """
     today_local = localtime(timezone.now()).date()
     
     past_orders = OrderSummary.objects.filter(
@@ -696,7 +748,6 @@ def owner_order_history(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def owner_user_details(request):
-    """Page 3: CRM Profile Ledger Ranked by Gross Investment Volume."""
     min_orders = request.GET.get('min_orders', '').strip()
     min_spend = request.GET.get('min_spend', '').strip()
     
@@ -731,7 +782,6 @@ def owner_user_details(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def delete_order_history(request, order_id):
-    """Hard Row Purge Action forces system-wide currency metrics recalculations."""
     if request.method == 'POST':
         order = get_object_or_404(OrderSummary, id=order_id)
         order.delete()
@@ -740,23 +790,21 @@ def delete_order_history(request, order_id):
 
 @login_required
 def cancel_order(request, order_id):
-    """Allows customers to safely cancel an order if it is still in the 'PLACED' status."""
     order = get_object_or_404(OrderSummary, id=order_id, user=request.user)
     if order.status == 'PLACED':
         order.status = 'CANCELLED'
-        order.canceled_by = 'CUSTOMER'  # Logs that the customer canceled it
+        order.canceled_by = 'CUSTOMER'
         order.save()
     return redirect('dashboard')
 
 
 @login_required
 def reverse_geocode_address(request):
-    """Converts coordinates to human-readable text via OpenStreetMap."""
     lat = request.GET.get('lat')
     lon = request.GET.get('lon')
     
     if not lat or not lon:
-        return JsonResponse({'error': 'Missing coordinates.'}, status=400)
+        return JsonResponse({'error': 'Missing coordinates.'}, status=404)
         
     try:
         url = f"https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lon}"
@@ -771,14 +819,12 @@ def reverse_geocode_address(request):
         return JsonResponse({'error': str(e)}, status=500)
     
 
-
 @login_required
 def update_cart_quantity(request, item_id):
-    """Increments or decrements active cart items."""
+    cart_item = get_object_or_404(CartItem, food_item_id=item_id, user=request.user)
+    
     if request.method == 'POST':
-        cart_item = get_object_or_404(CartItem, id=item_id, user=request.user)
         action = request.POST.get('action')
-        
         if action == 'increase':
             cart_item.quantity += 1
             cart_item.save()
@@ -794,7 +840,6 @@ def update_cart_quantity(request, item_id):
 
 @login_required
 def reorder_past_items(request, order_id):
-    """Re-adds dynamic historical line items back into the live cart."""
     old_order = get_object_or_404(OrderSummary, id=order_id, user=request.user)
     items_added_count = 0
     
@@ -825,14 +870,8 @@ def reorder_past_items(request, order_id):
 
 @login_required
 def update_profile(request):
-    """
-    Handles real-time customer account profile updates (First Name, Last Name, 
-    Email, Phone Number, and Default Delivery Address).
-    Defensively gets or creates the UserProfile instance to prevent RelatedObjectDoesNotExist crashes.
-    """
     user = request.user
     
-    # 🚀 FIX: Safety hook dynamically builds the profile mapping layout if missing
     profile, created = UserProfile.objects.get_or_create(
         user=user,
         defaults={
@@ -852,11 +891,9 @@ def update_profile(request):
         phone_raw = request.POST.get('phone_raw', '').strip()
         address = request.POST.get('address', '').strip()
         
-        # 🚀 Strips accidental leading zero input errors out dynamically
         if phone_raw.startswith('0'):
             phone_raw = phone_raw[1:]
             
-        # Compile country prefix elements with the raw mobile digits cleanly
         phone = country_code + phone_raw
         
         if not first_name or not phone_raw:
@@ -866,14 +903,12 @@ def update_profile(request):
                 user.first_name = first_name
                 user.last_name = last_name
                 
-                # Check if email is being changed and if it's already taken by someone else
                 if email and User.objects.filter(email=email).exclude(id=user.id).exists():
                     error_message = "This email is already in use. / Diese E-Mail wird bereits verwendet."
                 else:
                     user.email = email
                     user.save()
                     
-                    # Update Custom Ganesha UserProfile fields together safely
                     profile.phone_number = phone
                     profile.address = address
                     profile.save()

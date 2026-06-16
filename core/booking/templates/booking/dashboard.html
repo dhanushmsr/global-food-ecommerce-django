@@ -1,102 +1,115 @@
 {% extends 'booking/base.html' %}
 {% block content %}
-<div class="card p-4 bg-white border-0 shadow-sm" style="border-radius: 16px;">
-    
-    <div class="mb-4">
-        <h3 class="fw-bold text-dark mb-1" style="font-family: 'Georgia', serif;">Deine Bestellungen / Your Order Logs</h3>
-        <p class="text-muted small">Live progress updates from the Ganesha Kitchen</p>
-        <hr style="border-top: 1px dashed #dee2e6;">
+<div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white my-4">
+    <div class="bg-danger text-white p-4">
+        <h3 class="fw-bold mb-1" style="font-family:Georgia,serif;">
+            {% if lang == 'de' %}🕉️ Deine Bestellungen{% else %}🕉️ Your Orders{% endif %}
+        </h3>
+        <p class="mb-0 text-white-50">
+            {% if lang == 'de' %}Live-Fortschrittsaktualisierungen aus der Ganesha-Küche{% else %}Live progress updates from the Ganesha Kitchen{% endif %}
+        </p>
     </div>
-    
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead class="table-light text-secondary small text-uppercase">
-                <tr>
-                    <th>ID</th>
-                    <th>Fulfillment Mode</th>
-                    <th>Payment Route</th>
-                    <th>Total Capital Due</th>
-                    <th>Current Dispatch Metric</th>
-                    <th class="text-end" style="min-width: 320px;">Actions Matrix</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr {% if order.status == 'PLACED' %}style="background-color: #fffdf5;"{% endif %}>
-                    <td><b>#{{ order.id }}</b></td>
-                    
-                    <td>
-                        <span class="badge bg-dark px-2.5 py-1.5 rounded-pill">{{ order.get_order_type_display }}</span>
-                        {% if order.estimated_time %}
-                            <div class="mt-1 small text-muted font-monospace">🕒 {{ order.estimated_time }}</div>
-                        {% endif %}
-                    </td>
-                    
-                    <td><span class="badge bg-secondary px-2 py-1">{{ order.get_payment_method_display }}</span></td>
-                    
-                    <td class="text-success fw-bold">€{{ order.final_amount }}</td>
-                    
-                    <td>
-                        {% if order.status == 'DELIVERED' %}
-                            <span class="badge bg-success px-3 py-1.5 rounded-pill">✅ Delivered / Abgeschlossen</span>
-                        {% elif order.status == 'CANCELLED' %}
-                            <span class="badge bg-danger px-3 py-1.5 rounded-pill">❌ Cancelled / Storniert</span>
-                        {% elif order.status == 'OUT_FOR_DELIVERY' %}
-                            <span class="badge bg-info text-dark px-3 py-1.5 rounded-pill fw-semibold">⛟ On The Way / Unterwegs</span>
-                        {% elif order.status == 'PREPARING' %}
-                            <span class="badge bg-primary px-3 py-1.5 rounded-pill">📋 Dispatched / In Bearbeitung</span>
-                        {% else %}
-                            <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-semibold">📦 Ordered / Bestellt</span>
-                        {% endif %}
-                    </td>
-                    
-                    <td class="text-end">
-                        <div class="d-inline-flex gap-2 align-items-center">
-                            <a href="{% url 'reorder_past_items' order.id %}" class="btn btn-warning text-dark btn-sm fw-bold rounded-pill px-3 shadow-sm transition-button">
-                                🔄 Reorder / Erneut bestellen
-                            </a>
-                            
-                            {% if order.status == 'PLACED' %}
-                            <form method="POST" action="{% url 'cancel_order' order.id %}" class="m-0 p-0"
+    <div class="card-body p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light text-secondary small text-uppercase">
+                    <tr>
+                        <th>ID</th>
+                        <th>{% if lang == 'de' %}Service{% else %}Service{% endif %}</th>
+                        <th>{% if lang == 'de' %}Zahlung{% else %}Payment{% endif %}</th>
+                        <th>{% if lang == 'de' %}Gesamtsumme{% else %}Total{% endif %}</th>
+                        <th>{% if lang == 'de' %}Status{% else %}Status{% endif %}</th>
+                        <th class="text-end" style="min-width:320px;">{% if lang == 'de' %}Aktionen{% else %}Actions{% endif %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr {% if order.status == 'PLACED' %}class="table-warning"{% endif %}>
+                        <td><span class="badge bg-dark rounded-pill">#{{ order.id }}</span></td>
+                        <td>
+                            <span class="badge bg-secondary rounded-pill px-3">{{ order.get_order_type_display }}</span>
+                            {% if order.estimated_time %}
+                            <small class="d-block text-muted mt-1">🕒 {{ order.estimated_time }}</small>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-light text-dark border rounded-pill px-3">{{ order.get_payment_method_display }}</span></td>
+                        <td class="fw-bold text-success fs-6">€{{ order.final_amount }}</td>
+                        <td>
+                            <!-- Multi-language Status Badge Matrix -->
+                            {% if order.status == 'DELIVERED' %}
+                            <span class="badge bg-success rounded-pill px-3 py-2">
+                                {% if lang == 'de' %}✅ Geliefert{% else %}✅ Delivered{% endif %}
+                            </span>
+                            {% elif order.status == 'CANCELLED' %}
+                            <span class="badge bg-danger rounded-pill px-3 py-2">
+                                {% if lang == 'de' %}❌ Storniert{% else %}❌ Cancelled{% endif %}
+                            </span>
+                            {% elif order.status == 'OUT_FOR_DELIVERY' %}
+                            <span class="badge bg-info text-dark rounded-pill px-3 py-2">
+                                {% if lang == 'de' %}⛟ Unterwegs{% else %}⛟ On The Way{% endif %}
+                            </span>
+                            {% elif order.status == 'PREPARING' %}
+                            <span class="badge bg-primary rounded-pill px-3 py-2">
+                                {% if lang == 'de' %}📋 In Zubereitung{% else %}📋 Preparing{% endif %}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                {% if lang == 'de' %}📦 Bestellt{% else %}📦 Ordered{% endif %}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-2 flex-wrap justify-content-end">
+                                <!-- Reorder Submission Anchor Trigger -->
+                                <a href="{% url 'reorder_past_items' order.id %}" class="btn btn-warning btn-sm rounded-pill fw-bold px-3 shadow-sm action-btn">
+                                    🔄 {% if lang == 'de' %}Wiederholen{% else %}Reorder{% endif %}
+                                </a>
+                                
+                                <!-- Defensive Immediate Intercept Confirmation Action Form -->
+                                {% if order.status == 'PLACED' %}
+                                <form method="POST" action="{% url 'cancel_order' order.id %}" class="m-0"
                                 data-confirm-msg="{% if lang == 'de' %}Möchtest du diese Bestellung wirklich stornieren?{% else %}Are you absolutely sure you want to cancel this order?{% endif %}"
                                 onsubmit="return confirm(this.dataset.confirmMsg);">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold transition-button">
-                                    ❌ Cancel / Stornieren
-                                </button>
-                            </form>
-                            {% endif %}
-                            
-                            <a href="{% url 'view_bill' order.id %}" class="btn btn-outline-dark btn-sm rounded-pill px-3" target="_blank">
-                                Open Bill 📄
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center py-4 text-muted italic">
-                        Du hast noch keine Bestellungen aufgegeben. / No previous orders found in your database profile history.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill fw-semibold px-3 action-btn">
+                                        ❌ {% if lang == 'de' %}Stornieren{% else %}Cancel{% endif %}
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                <!-- View Receipt Invoice Route Link -->
+                                <a href="{% url 'view_bill' order.id %}" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm action-btn" target="_blank">
+                                    📄 {% if lang == 'de' %}Rechnung{% else %}Bill{% endif %}
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <!-- Fallback Empty Array State Layer -->
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="fs-1">🍽️</div>
+                            <h6 class="fw-bold text-muted">
+                                {% if lang == 'de' %}Keine Bestellungen gefunden{% else %}No Orders Found{% endif %}
+                            </h6>
+                            <p class="small text-secondary mb-0">
+                                {% if lang == 'de' %}Du hast noch keine Bestellungen aufgegeben.{% else %}You haven't placed any orders yet.{% endif %}
+                            </p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <style>
-    .transition-button {
-        transition: all 0.2s ease-in-out;
-    }
-    .transition-button:hover {
-        transform: translateY(-1px);
-    }
-    a.btn-warning:hover {
-        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.25) !important;
-    }
-    button.btn-outline-danger:hover {
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2) !important;
-    }
+.action-btn{transition:.2s}
+.action-btn:hover{transform:translateY(-2px)}
+.table td,.table th{white-space:nowrap}
+@media(max-width:768px){
+    .table td,.table th{font-size:.8rem}
+}
 </style>
 {% endblock %}

@@ -1,44 +1,84 @@
 {% extends 'booking/base.html' %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card p-4 bg-white border-0 shadow-sm">
-            <h4 class="fw-bold mb-4 text-dark">🛒 Select Checkout & Payment Infrastructure</h4>
-            
-            <form method="POST">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label">Fulfillment Address Delivery Target</label>
-                    <textarea name="address" class="form-control" rows="2" required>{{ profile.address }}</textarea>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Callback Phone Reference</label>
-                    <input type="tel" name="phone" class="form-control" value="{{ profile.phone_number }}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Order Servicing Units (Quantity)</label>
-                    <input type="number" name="quantity" class="form-control" value="1" min="1" required>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="form-label fw-bold text-secondary">Choose Verified Premium Payment Channel</label>
-                    <div class="form-check p-3 border rounded mb-2 bg-light">
-                        <input class="form-check-input ms-1" type="radio" name="payment_method" value="PAYPAL" id="p1" required>
-                        <label class="form-check-label ms-2" for="p1"><b>PayPal Platform</b> 💳</label>
-                    </div>
-                    <div class="form-check p-3 border rounded mb-2 bg-light">
-                        <input class="form-check-input ms-1" type="radio" name="payment_method" value="CARD" id="p2">
-                        <label class="form-check-label ms-2" for="p2"><b>Credit / Debit Bank Card Processing</b> 🏦</label>
-                    </div>
-                    <div class="form-check p-3 border rounded mb-2 bg-light">
-                        <input class="form-check-input ms-1" type="radio" name="payment_method" value="COD" id="p3" checked>
-                        <label class="form-check-label ms-2" for="p3"><b>Cash on Delivery (COD Service)</b> 💵</label>
-                    </div>
-                </div>
 
-                <button type="submit" class="btn btn-success w-100 py-3 fw-bold">AUTHORIZE HOTEL ORDER TRANSACTION</button>
-            </form>
+<div class="row justify-content-center my-5">
+    <div class="col-lg-7 col-xl-6">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white">
+            <div class="bg-danger text-white text-center p-4">
+                <div class="bg-white text-danger rounded-circle d-inline-flex align-items-center justify-content-center shadow mb-3" style="width:75px;height:75px;">
+                    <span class="fs-1">🛒</span>
+                </div>
+                <h3 class="fw-bold mb-1" style="font-family:Georgia,serif;">
+                    {% if lang == 'de' %}Sicherer Checkout{% else %}Secure Checkout{% endif %}
+                </h3>
+                <p class="mb-0 text-white-50">
+                    {% if lang == 'de' %}Ganesha Bestell- & Zahlungsbestätigung{% else %}Ganesha Order & Payment Confirmation{% endif %}
+                </p>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-secondary small">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                            {% if lang == 'de' %}Lieferadresse{% else %}Delivery Address{% endif %}
+                        </label>
+                        <textarea name="address" class="form-control rounded-4 shadow-sm" rows="3" required>{{ profile.address }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-secondary small">
+                            <i class="bi bi-telephone-fill text-danger me-1"></i>
+                            {% if lang == 'de' %}Telefonnummer{% else %}Phone Number{% endif %}
+                        </label>
+                        <input type="tel" name="phone" class="form-control rounded-pill shadow-sm" value="{{ profile.phone_number }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-secondary small">
+                            <i class="bi bi-bag-check-fill text-danger me-1"></i>
+                            {% if lang == 'de' %}Menge{% else %}Quantity{% endif %}
+                        </label>
+                        <input type="number" name="quantity" class="form-control rounded-pill shadow-sm" value="1" min="1" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-credit-card text-danger me-1"></i>
+                            {% if lang == 'de' %}Zahlungsart wählen{% else %}Select Payment Method{% endif %}
+                        </h6>
+
+                        <div class="form-check border rounded-4 p-3 mb-3 shadow-sm bg-light">
+                            <input class="form-check-input ms-1" type="radio" name="payment_method" value="PAYPAL" id="p1" required>
+                            <label class="form-check-label ms-2 fw-semibold" for="p1">💳 PayPal Platform</label>
+                        </div>
+
+                        <div class="form-check border rounded-4 p-3 mb-3 shadow-sm bg-light">
+                            <input class="form-check-input ms-1" type="radio" name="payment_method" value="CARD" id="p2">
+                            <label class="form-check-label ms-2 fw-semibold" for="p2">
+                                {% if lang == 'de' %}🏦 Kredit- / Debitkarte{% else %}🏦 Credit / Debit Card{% endif %}
+                            </label>
+                        </div>
+
+                        <div class="form-check border rounded-4 p-3 mb-3 shadow-sm bg-success bg-opacity-10">
+                            <input class="form-check-input ms-1" type="radio" name="payment_method" value="COD" id="p3" checked>
+                            <label class="form-check-label ms-2 fw-semibold text-success" for="p3">
+                                {% if lang == 'de' %}💵 Barzahlung bei Lieferung{% else %}💵 Cash On Delivery{% endif %}
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 rounded-pill py-3 fw-bold shadow text-uppercase">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        {% if lang == 'de' %}Bestellung bestätigen{% else %}Confirm Order{% endif %}
+                    </button>
+
+                </form>
+            </div>
         </div>
     </div>
 </div>
+
 {% endblock %}

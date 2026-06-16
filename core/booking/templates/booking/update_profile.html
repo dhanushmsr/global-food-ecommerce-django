@@ -1,91 +1,150 @@
 {% extends 'booking/base.html' %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card p-4 bg-white border-0 shadow-sm" style="border-radius: 16px;">
+<div class="row justify-content-center my-5">
+    <div class="col-lg-6 col-md-8">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white">
             
-            <div class="mb-3 text-center">
-                <h3 class="fw-bold text-dark mb-1" style="font-family: 'Georgia', serif;">
-                    {% if lang == 'de' %}Profil bearbeiten{% else %}Update Profile Details{% endif %}
-                </h3>
-                <p class="text-muted small">{% if lang == 'de' %}Halten Sie Ihre Lieferdaten auf dem neuesten Stand{% else %}Keep your default delivery channels accurate{% endif %}</p>
-                <hr style="border-top: 1px dashed #dee2e6;">
-            </div>
-
-            {% if success_message %}
-                <div class="alert alert-success border-0 shadow-sm small py-2 rounded-3 text-center" role="alert">
-                    ✅ {{ success_message }}
+            <!-- Header Banner block -->
+            <div class="bg-danger text-white text-center p-4 position-relative">
+                <div class="bg-white text-danger rounded-circle d-inline-flex align-items-center justify-content-center shadow mb-3" style="width:70px;height:70px;">
+                    <i class="bi bi-person-badge-fill fs-2"></i>
                 </div>
-            {% endif %}
-            {% if error_message %}
-                <div class="alert alert-danger border-0 shadow-sm small py-2 rounded-3 text-center" role="alert">
-                    ⚠️ {{ error_message }}
-                </div>
-            {% endif %}
-
-            <form method="POST" action="{% url 'update_profile' %}" class="mt-2">
-                {% csrf_token %}
+                <h4 class="fw-bold mb-1" style="font-family:Georgia,serif;">
+                    {% if lang == 'de' %}Mein Profil verwalten{% else %}Manage My Profile{% endif %}
+                </h4>
+                <p class="mb-0 text-white-50 small">
+                    {% if lang == 'de' %}Aktualisieren Sie Ihre Daten jederzeit sicher{% else %}Securely update your details at any time{% endif %}
+                </p>
                 
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Vorname{% else %}First Name{% endif %}</label>
-                        <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control form-control-sm border-secondary-subtle" required style="border-radius: 8px;">
+                <!-- Explicit Quick-Edit Action Trigger -->
+                <button type="button" id="toggleEditBtn" class="btn btn-light btn-sm text-danger fw-bold rounded-pill shadow-sm position-absolute top-0 end-0 m-3 px-3 py-1">
+                    <i class="bi bi-pencil-square me-1"></i> {% if lang == 'de' %}Bearbeiten{% else %}Edit{% endif %}
+                </button>
+            </div>
+            
+            <div class="card-body p-4">
+                {% if success_message %}
+                <div class="alert alert-success border-0 rounded-4 py-2 small text-center fw-semibold shadow-sm mb-3">
+                    <i class="bi bi-check-circle-fill me-1"></i> {{ success_message }}
+                </div>
+                {% endif %}
+                
+                {% if error %}
+                <div class="alert alert-danger border-0 rounded-4 py-2 small text-center fw-semibold shadow-sm mb-3">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="{% url 'update_profile' %}">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <!-- First Name Input Block -->
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary">{% if lang == 'de' %}Vorname{% else %}First Name{% endif %}</label>
+                            <input type="text" name="first_name" class="form-control rounded-pill profile-editable-input" value="{{ user.first_name }}" required disabled>
+                        </div>
+                        
+                        <!-- Last Name Input Block -->
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary">{% if lang == 'de' %}Nachname{% else %}Last Name{% endif %}</label>
+                            <input type="text" name="last_name" class="form-control rounded-pill profile-editable-input" value="{{ user.last_name }}" required disabled>
+                        </div>
+                        
+                        <!-- Core Email Verification Input Block -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">
+                                <i class="bi bi-envelope-fill text-muted me-1"></i> {% if lang == 'de' %}E-Mail-Adresse{% else %}Email Address{% endif %}
+                            </label>
+                            <input type="email" name="email" class="form-control rounded-pill profile-editable-input" value="{{ user.email }}" required disabled>
+                        </div>
+                        
+                        <!-- Logistical Phone Input Field Block (Read-Only Unique Login Identifier Token) -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">
+                                <i class="bi bi-telephone-fill text-muted me-1"></i> {% if lang == 'de' %}Telefonnummer (Login ID - Nicht änderbar){% else %}Phone Number (Login ID - Unchangeable){% endif %}
+                            </label>
+                            <input type="text" class="form-control rounded-pill bg-light text-muted font-monospace border-0" value="{{ user.username }}" readonly disabled>
+                        </div>
+                        
+                        <!-- Standard Delivery Address Text Area Block -->
+                        <div class="col-12 mb-2">
+                            <label class="form-label small fw-bold text-secondary">
+                                <i class="bi bi-geo-alt-fill text-muted me-1"></i> {% if lang == 'de' %}Standard-Lieferadresse{% else %}Default Delivery Address{% endif %}
+                            </label>
+                            <textarea name="address" class="form-control rounded-4 profile-editable-input" rows="2" required disabled>{{ user.userprofile.address }}</textarea>
+                        </div>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Nachname{% else %}Last Name{% endif %}</label>
-                        <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control form-control-sm border-secondary-subtle" style="border-radius: 8px;">
+                    
+                    <!-- Hidden Submission Control Cluster Intercept Footer Element -->
+                    <div id="actionButtonGroup" class="d-none animate-fade-in mt-3">
+                        <hr class="text-muted opacity-25 my-3">
+                        <div class="d-flex gap-2">
+                            <button type="button" id="cancelEditBtn" class="btn btn-outline-secondary w-50 rounded-pill fw-semibold py-2">
+                                {% if lang == 'de' %}Abbrechen{% else %}Cancel{% endif %}
+                            </button>
+                            <button type="submit" class="btn btn-danger w-50 rounded-pill fw-bold py-2 shadow-sm text-uppercase">
+                                <i class="bi bi-cloud-arrow-up-fill me-1"></i> {% if lang == 'de' %}Speichern{% else %}Save Changes{% endif %}
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}E-Mail-Adresse{% else %}Email Address{% endif %}</label>
-                    <input type="email" name="email" value="{{ user.email }}" class="form-control form-control-sm border-secondary-subtle" style="border-radius: 8px;">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Telefonnummer{% else %}Phone Number{% endif %}</label>
-                    <div class="input-group">
-                        <select name="country_code" class="form-select form-select-sm border-secondary-subtle bg-light text-dark fw-bold" style="max-width: 110px; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                            <option value="+49" {% if "+49" in user.profile.phone_number %}selected{% endif %}>🇩🇪 +49</option>
-                            <option value="+91" {% if "+91" in user.profile.phone_number %}selected{% endif %}>🇮🇳 +91</option>
-                            <option value="+44" {% if "+44" in user.profile.phone_number %}selected{% endif %}>🇬🇧 +44</option>
-                            <option value="+1" {% if "+1" in user.profile.phone_number %}selected{% endif %}>🇺🇸 +1</option>
-                        </select>
-                        <input type="tel" name="phone_raw" 
-                               value="{% if '+91' in user.profile.phone_number %}{{ user.profile.phone_number|slice:'3:' }}{% elif '+49' in user.profile.phone_number %}{{ user.profile.phone_number|slice:'3:' }}{% elif '+44' in user.profile.phone_number %}{{ user.profile.phone_number|slice:'3:' }}{% elif '+1' in user.profile.phone_number %}{{ user.profile.phone_number|slice:'2:' }}{% else %}{{ user.profile.phone_number }}{% endif %}" 
-                               class="form-control form-control-sm border-secondary-subtle" required style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; z-index: 1;">
-                    </div>
-                    <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
-                        {% if lang == 'de' %}Wählen Sie Ihr Land aus und passen Sie Ihre Mobilnummer an.{% else %}Modify your country calling routing prefix and mobile digit lines safely.{% endif %}
-                    </small>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Standard-Lieferadresse{% else %}Default Delivery Address{% endif %}</label>
-                    <textarea name="address" class="form-control form-control-sm border-secondary-subtle" rows="3" style="border-radius: 8px; font-family: monospace;">{{ user.profile.address }}</textarea>
-                </div>
-
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-sm btn-danger fw-bold py-2 shadow-sm transition-button" style="border-radius: 8px;">
-                        💾 {% if lang == 'de' %}Änderungen speichern{% else %}Save Profile Changes{% endif %}
-                    </button>
-                    <a href="{% url 'home' %}" class="btn btn-sm btn-outline-secondary py-2" style="border-radius: 8px;">
-                        {% if lang == 'de' %}Zurück zur Speisekarte{% else %}Back to Menu{% endif %}
-                    </a>
-                </div>
-            </form>
-
+                </form>
+                
+            </div>
         </div>
     </div>
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const toggleBtn = document.getElementById("toggleEditBtn");
+    const cancelBtn = document.getElementById("cancelEditBtn");
+    const actionGroup = document.getElementById("actionButtonGroup");
+    const inputs = document.querySelectorAll(".profile-editable-input");
+    
+    // Store baseline snapshot values to revert safely on abort loops
+    let initialValues = [];
+
+    toggleBtn.addEventListener("click", function() {
+        // Cache entry states and drop uneditable parameters dynamically
+        initialValues = Array.from(inputs).map(input => input.value);
+        
+        inputs.forEach(input => {
+            input.removeAttribute("disabled");
+            input.classList.add("border-danger"); // Visual indicator showing edit mode is active
+        });
+        
+        actionGroup.classList.remove("d-none");
+        toggleBtn.classList.add("disabled");
+        toggleBtn.setAttribute("disabled", "true");
+    });
+
+    cancelBtn.addEventListener("click", function() {
+        // Rollback form to past values cleanly
+        inputs.forEach((input, index) => {
+            input.value = initialValues[index];
+            input.setAttribute("disabled", "true");
+            input.classList.remove("border-danger");
+        });
+        
+        actionGroup.classList.add("d-none");
+        toggleBtn.classList.remove("disabled");
+        toggleBtn.removeAttribute("disabled");
+    });
+});
+</script>
+
 <style>
-    .transition-button {
-        transition: all 0.2s ease-in-out;
-    }
-    .transition-button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25) !important;
-    }
+.profile-editable-input:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+}
+.animate-fade-in {
+    animation: actionFade 0.25s ease-in-out forwards;
+}
+@keyframes actionFade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 </style>
 {% endblock %}
