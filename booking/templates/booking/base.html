@@ -1,0 +1,308 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ lang|default:'de' }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GaneSha - Sri-Lanka & Indien</title>
+<link class="tab-site-icon" rel="icon" type="image/png" href="{% static 'booking/images/image.png' %}">
+<link rel="apple-touch-icon" href="{% static 'booking/images/logo.png' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght=600;700&family=Poppins:wght=400;500;600;700&display=swap');
+:root{--blue:#12345c;--blue2:#1f4b7a;--gold:#d4af37;--gold-light:#fff5cf;--cream:#fbf7ec}
+*{box-sizing:border-box}
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{min-height:100vh;background:#fbf7ec;font-family:'Poppins',sans-serif;color:#1f2937}
+main,.page-shell,.container{background:transparent}
+.card,.section-card,#about-section,#allergen-section{background:#fff!important;box-shadow:0 15px 40px rgba(18,52,92,.06)!important}
+.brand-title,.footer-title{font-family:'Playfair Display',serif;font-weight:700}
+.brand-title{font-size:1.8rem;color:var(--gold);line-height:1}
+.brand-sub{font-size:.7rem;color:#fff8df;letter-spacing:.8px;text-transform:uppercase;font-weight:600}
+.logo-img{width:54px;height:54px;object-fit:contain;background:#fff;border-radius:18px;padding:5px;box-shadow:0 8px 25px rgba(212,175,55,.35);transition:.3s}
+.logo-img:hover{transform:scale(1.05) rotate(-2deg)}
+.main-nav{background:rgba(18,52,92,.96);backdrop-filter:blur(16px);border-bottom:1px solid rgba(212,175,55,.45);box-shadow:0 8px 25px rgba(18,52,92,.18)}
+.nav-wrap{max-width:1320px;width:100%;margin:auto;padding:0 .9rem}
+.nav-link{border-radius:50rem;font-weight:600;color:#fff!important;transition:.25s ease;white-space:nowrap}
+.nav-link:hover{background:rgba(212,175,55,.2);color:var(--gold)!important;transform:translateY(-2px)}
+.welcome-badge{max-width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(212,175,55,.55);color:#fff;border-radius:50rem;padding:.5rem .9rem;font-weight:600}
+.gold-link{color:var(--gold)!important}
+.btn-gold{background:linear-gradient(135deg,#d4af37,#ffe38b);color:var(--blue);border:0;transition:.25s}
+.btn-gold:hover{background:#fff;color:var(--blue);transform:translateY(-2px);box-shadow:0 8px 18px rgba(212,175,55,.35)}
+.btn-outline-gold{border:1px solid var(--gold);color:var(--gold);transition:.25s}
+.btn-outline-gold:hover{background:var(--gold);color:var(--blue);transform:translateY(-2px)}
+.card{border:0;border-radius:1.5rem!important;background:rgba(255,255,255,.94)!important;backdrop-filter:blur(4px);box-shadow:0 15px 40px rgba(18,52,92,.12)!important;animation:pageFade .35s ease}
+@keyframes pageFade{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+.page-shell{min-height:65vh;width:100%;max-width:1200px;padding-left:1rem;padding-right:1rem}
+.dropdown-menu{border:1px solid rgba(212,175,55,.3)!important}
+.dropdown-item{border-radius:12px;transition:.2s;font-weight:500;}
+.dropdown-item:hover{background:var(--gold-light);color:var(--blue)}
+.badge.bg-danger{background:var(--gold)!important;color:var(--blue)}
+
+/* 🛠️ ALIGNMENT & NAVIGATION CLEANUP UTILITIES */
+.mobile-action-container { display: inline-flex; align-items: center; gap: 0.75rem; }
+.mobile-quick-strip { display: inline-flex; align-items: center; gap: 0.75rem !important; }
+
+/* 📱 FIXED BOTTOM APP NAVIGATION BAR (Hidden on Desktop) */
+.mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(18,52,92,.98);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(212,175,55,.45);
+    box-shadow: 0 -5px 20px rgba(18,52,92,.2);
+    z-index: 1050;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.6rem 0 calc(0.6rem + env(safe-area-inset-bottom, 0px));
+}
+.mobile-nav-item {
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.65rem;
+    font-weight: 500;
+    transition: 0.2s;
+}
+.mobile-nav-item i { font-size: 1.35rem; margin-bottom: 2px; }
+.mobile-nav-item:hover, .mobile-nav-item:active { color: var(--gold); }
+
+footer{margin-top:5rem;background:linear-gradient(135deg,#12345c,#1f4b7a);border-top:4px solid var(--gold);color:rgba(255,255,255,.85)}
+.footer-title{color:var(--gold);font-size:1.3rem}
+footer img{transition:.3s}
+footer img:hover{transform:scale(1.08)}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:20px}
+
+/* 🎵 RADIO PLAYER ANIMATIONS */
+@keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+.live-active {
+    background-color: #dc3545 !important;
+    animation: pulse-red 2s infinite;
+}
+
+@media(max-width:991px){
+    body { padding-bottom: 85px; } /* Increased to ensure footer isn't covered by bottom nav */
+    .main-nav{margin-bottom:1rem!important}
+    .page-shell{max-width:100%;padding-left:.75rem;padding-right:.75rem}
+    .desktop-nav-block { display: none !important; }
+}
+@media(max-width:576px){
+    .logo-img{width:46px;height:44px;border-radius:12px}
+    .brand-title{font-size:1.35rem}
+    .brand-sub{font-size:.55rem}
+    .page-shell{padding-left:.55rem;padding-right:.55rem}
+    .card{border-radius:1.15rem!important}
+    footer{margin-top:3rem}
+}
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg sticky-top py-2 mb-4 main-nav">
+    <div class="nav-wrap d-flex align-items-center justify-content-between">
+        
+        <a class="navbar-brand d-flex align-items-center gap-2 me-0" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'welcome' %}{% endif %}">
+            <img src="{% static 'booking/images/logo_new1.png' %}?v=2" alt="GaneSha Logo" class="logo-img">
+            <div class="d-none d-sm-block">
+                <span class="brand-title d-block">GaneSha</span>
+                <span class="brand-sub d-block">{% if lang == 'de' %}Sri-Lanka & Indien in Munderkingen{% else %}Sri-Lanka & India in Munderkingen{% endif %}</span>
+            </div>
+        </a>
+
+        <div class="mobile-action-container ms-auto d-lg-none">
+            <div class="mobile-quick-strip">
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-outline-gold rounded-pill px-3 py-1 fw-bold" type="button" data-bs-toggle="dropdown" style="font-size:0.85rem;">
+                        {{ lang|upper }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow rounded-4 p-2 mt-2">
+                        <li><a class="dropdown-item rounded-3 small" href="{% url 'set_language' %}?lang=en"><i class="bi bi-translate me-1"></i>English</a></li>
+                        <li><a class="dropdown-item rounded-3 small" href="{% url 'set_language' %}?lang=de"><i class="bi bi-translate me-1"></i>Deutsch</a></li>
+                    </ul>
+                </div>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="ms-1" style="color: var(--gold); font-size: 1.3rem;"><i class="bi bi-box-arrow-right"></i></a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="collapse navbar-collapse flex-grow-0 desktop-nav-block d-none d-lg-block" id="navbarNav">
+            <div class="navbar-nav ms-auto align-items-center gap-lg-3">
+                
+                <div class="dropdown">
+                    <button class="btn btn-outline-gold dropdown-toggle rounded-pill px-3 py-2 fw-semibold" type="button" data-bs-toggle="dropdown" style="font-size: 0.95rem;">
+                        <i class="bi bi-globe me-1"></i> {{ lang|upper }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow rounded-4 p-2 mt-2">
+                        <li><a class="dropdown-item rounded-3 small" href="{% url 'set_language' %}?lang=en"><i class="bi bi-translate me-1"></i>English</a></li>
+                        <li><a class="dropdown-item rounded-3 small" href="{% url 'set_language' %}?lang=de"><i class="bi bi-translate me-1"></i>Deutsch</a></li>
+                    </ul>
+                </div>
+
+                {% if user.is_authenticated %}
+                    <a class="nav-link px-2" href="{% url 'home' %}"><i class="bi bi-egg-fried me-1"></i>{% if lang == 'de' %}Speisekarte{% else %}Menu{% endif %}</a>
+                    {% if not user.is_staff %}
+                        <a class="nav-link px-2" href="{% url 'dashboard' %}"><i class="bi bi-clock-history me-1"></i>{% if lang == 'de' %}Meine Bestellungen{% else %}My Orders{% endif %}</a>
+                        <a class="nav-link px-2 position-relative" href="{% url 'view_cart' %}">
+                            <i class="bi bi-cart3 me-1"></i>{% if lang == 'de' %}Warenkorb{% else %}Cart{% endif %}
+                            <span id="cart-badge-counter" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.68rem;"><span class="badge-number-node">{{ cart_total_count|default:0 }}</span></span>
+                        </a>
+                    {% endif %}
+                    {% if user.is_staff %}
+                        <a class="btn btn-gold rounded-pill fw-bold px-4 py-2 shadow-sm ms-2" href="{% url 'hotel_management' %}"><i class="bi bi-shield-lock-fill me-1"></i>{% if lang == 'de' %}Betreiber-Cockpit{% else %}Owner Control Deck{% endif %}</a>
+                    {% endif %}
+                    
+                    <span class="welcome-badge d-inline-flex align-items-center ms-2 py-2">
+                        <i class="bi bi-person-circle me-2"></i>{% if lang == 'de' %}Willkommen,{% else %}Welcome,{% endif %}&nbsp;<a href="{% url 'update_profile' %}" class="gold-link fw-bold text-decoration-none">{{ user.first_name|default:user.username }}</a>!
+                    </span>
+                    <a class="btn btn-outline-gold rounded-pill px-4 py-2 fw-semibold ms-2" href="{% url 'logout' %}">{% if lang == 'de' %}Abmelden{% else %}Logout{% endif %}</a>
+                {% else %}
+                    <a class="btn btn-outline-gold rounded-pill px-4 py-2 fw-semibold ms-2" href="{% url 'login' %}">{% if lang == 'de' %}Anmelden{% else %}Login{% endif %}</a>
+                    <a class="btn btn-gold rounded-pill px-4 py-2 fw-semibold shadow-sm ms-2" href="{% url 'register' %}">{% if lang == 'de' %}Registrieren{% else %}Register{% endif %}</a>
+                {% endif %}
+            </div>
+        </div>
+        
+    </div>
+</nav>
+
+<main class="container page-shell">
+{% if messages %}
+    <div class="row justify-content-center mb-3 mx-0">
+        <div class="col-12 px-0">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} border-0 shadow-sm rounded-4 py-3 px-4 mb-2 small fw-semibold text-wrap" role="alert">
+                    <i class="bi bi-info-circle-fill gold-text me-2"></i> {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+{% block content %}{% endblock %}
+</main>
+
+<footer class="text-center small py-5">
+    <div class="container">
+        <img src="{% static 'booking/images/logo_new1.png' %}?v=2" alt="GaneSha Logo" class="bg-white rounded-circle p-2 shadow mb-2" style="width:64px;height:64px;object-fit:contain;">
+        <p class="mb-3 footer-title">GaneSha Restaurant</p>
+
+        <div class="live-radio-container mx-auto mt-3 mb-4 p-2 rounded-pill shadow" style="max-width: 320px; background: rgba(0,0,0,0.25); border: 1px solid rgba(212,175,55,0.4);">
+            <audio id="thamizhini-fm" preload="none">
+                <source src="https://fm.thamizhinifm.com/listen/thamizhinifm.com/radio.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            <div class="d-flex align-items-center justify-content-between px-3 py-1">
+                <div class="d-flex align-items-center gap-3">
+                    <button id="radio-toggle-btn" class="btn btn-gold rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; border: 2px solid #fff; flex-shrink: 0;">
+                        <i id="radio-icon" class="bi bi-play-fill fs-4 blue-text" style="margin-left: 3px;"></i>
+                    </button>
+                    <div class="text-start">
+                        <h6 class="mb-0 fw-bold" style="color: var(--gold); font-size: 0.95rem;">Thamizhini FM</h6>
+                        <div class="d-flex align-items-center gap-1">
+                            <span id="live-dot" class="badge rounded-pill bg-secondary" style="width: 6px; height: 6px; padding: 0;"></span>
+                            <span class="text-white-50" style="font-size: 0.65rem; font-weight: bold; letter-spacing: 1px;">LIVE RADIO</span>
+                        </div>
+                    </div>
+                </div>
+                <i class="bi bi-broadcast" style="color: var(--gold); font-size: 1.5rem; opacity: 0.8;"></i>
+            </div>
+        </div>
+
+        <p class="mb-2">&copy; 2026 GaneSha Portal. {% if lang == 'de' %}Alle Rechte vorbehalten.{% else %}All Rights Reserved.{% endif %}</p>
+        <p class="mb-2">
+            <a href="{% url 'terms_conditions' %}" class="text-decoration-none small" style="color: var(--gold);">
+                {% if lang == 'de' %}Allgemeine Geschäftsbedingungen{% else %}Terms & Conditions{% endif %}
+            </a>
+        </p>
+        <p class="mb-0 text-white-50">{% if lang == 'de' %}Authentische Spezialitäten aus Sri Lanka und Indien direkt zu Ihnen nach Hause.{% else %}Authentic specialties from Sri Lanka and India delivered straight to your home.{% endif %}</p>
+    </div>
+</footer>
+
+<div class="mobile-bottom-nav d-lg-none">
+    <a href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'welcome' %}{% endif %}" class="mobile-nav-item">
+        <i class="bi bi-house-door-fill"></i>
+        <span>Home</span>
+    </a>
+    
+    {% if user.is_authenticated %}
+        
+        {% if not user.is_staff %}
+        <a href="{% url 'dashboard' %}" class="mobile-nav-item">
+            <i class="bi bi-receipt"></i>
+            <span>{% if lang == 'de' %}Bestellungen{% else %}Orders{% endif %}</span>
+        </a>
+
+        <a href="{% url 'view_cart' %}" class="mobile-nav-item position-relative">
+            <i class="bi bi-cart3"></i>
+            <span class="position-absolute translate-middle badge rounded-pill" style="top: 5px; left: 70%; font-size:.6rem; padding:.2em .35em; background:var(--gold); color:var(--blue);">{{ cart_total_count|default:0 }}</span>
+            <span>{% if lang == 'de' %}Warenkorb{% else %}Cart{% endif %}</span>
+        </a>
+        {% endif %}
+        
+        <a href="{% url 'update_profile' %}" class="mobile-nav-item">
+            <i class="bi bi-person-circle"></i>
+            <span>{% if lang == 'de' %}Profil{% else %}Profile{% endif %}</span>
+        </a>
+
+        {% if user.is_staff %}
+        <a href="{% url 'hotel_management' %}" class="mobile-nav-item" style="color: #d4af37;">
+            <i class="bi bi-shield-lock-fill"></i>
+            <span>Admin</span>
+        </a>
+        {% endif %}
+
+    {% else %}
+        <a href="{% url 'login' %}" class="mobile-nav-item">
+            <i class="bi bi-box-arrow-in-right"></i>
+            <span>{% if lang == 'de' %}Anmelden{% else %}Login{% endif %}</span>
+        </a>
+        <a href="{% url 'register' %}" class="mobile-nav-item">
+            <i class="bi bi-person-plus-fill"></i>
+            <span>{% if lang == 'de' %}Registrieren{% else %}Register{% endif %}</span>
+        </a>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Radio Player Logic
+document.addEventListener("DOMContentLoaded", function() {
+    const audio = document.getElementById("thamizhini-fm");
+    const toggleBtn = document.getElementById("radio-toggle-btn");
+    const icon = document.getElementById("radio-icon");
+    const liveDot = document.getElementById("live-dot");
+
+    if(toggleBtn && audio) {
+        toggleBtn.addEventListener("click", function() {
+            if (audio.paused) {
+                audio.play().then(() => {
+                    icon.classList.replace("bi-play-fill", "bi-pause-fill");
+                    icon.style.marginLeft = "0px";
+                    liveDot.classList.replace("bg-secondary", "live-active");
+                }).catch(error => {
+                    console.log("Playback failed:", error);
+                    alert("Audio playback was blocked by your browser. Please interact with the page first.");
+                });
+            } else {
+                audio.pause();
+                icon.classList.replace("bi-pause-fill", "bi-play-fill");
+                icon.style.marginLeft = "3px";
+                liveDot.classList.replace("live-active", "bg-secondary");
+            }
+        });
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+{% extends 'booking/base.html' %}
+{% block content %}
+
+<style>
+    .checkout-header{background:linear-gradient(135deg,#071b3a,#0b2a55);}
+    .gold-text{color:#d4af37;}
+    .gold-bg{background:#d4af37;color:#071b3a;}
+    .gold-border{border-color:#d4af37!important;}
+    .blue-text{color:#071b3a;}
+    .checkout-card{transition:.3s ease;}
+    .checkout-card:hover{transform:translateY(-3px);}
+    .icon-circle{width:75px;height:75px;background:#d4af37;color:#071b3a;}
+    .form-control:focus{border-color:#d4af37;box-shadow:0 0 0 .2rem rgba(212,175,55,.25);}
+    .pay-option{transition:.25s ease;cursor:pointer;}
+    .pay-option:hover{border-color:#d4af37!important;transform:translateY(-2px);background:#fff9db!important;}
+    .btn-blue{background:#071b3a;color:#d4af37;border:1px solid #d4af37;transition:.25s ease;}
+    .btn-blue:hover{background:#d4af37;color:#071b3a;transform:translateY(-2px);}
+
+    /* 🚀 LIVE BACKEND HANDSHAKE PROCESSING OVERLAY SCENARIO */
+    #processingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(7, 27, 58, 0.95);
+        z-index: 1050;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+    }
+    .spinner-gold {
+        width: 3rem;
+        height: 3rem;
+        border: 0.25em solid #d4af37;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spinner-border .75s linear infinite;
+    }
+</style>
+
+<!-- 🚨 AUTOMATED REAL-TIME INTERMEDIARY ENGINE LAYER -->
+<div id="processingOverlay">
+    <div class="text-center">
+        <div class="spinner-gold mb-3 d-inline-block"></div>
+        <h4 class="fw-bold gold-text" id="statusMessage">
+            {% if lang == 'de' %}Überprüfung läuft...{% else %}Verifying Order Details...{% endif %}
+        </h4>
+        <p class="text-white-50 small px-3" id="statusSubtext">
+            {% if lang == 'de' %}Bitte schließen Sie dieses Fenster nicht.{% else %}The network matrix is establishing secure payment verification threads.{% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="row justify-content-center my-5">
+    <div class="col-lg-7 col-xl-6">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white checkout-card">
+            <div class="checkout-header text-white text-center p-4">
+                <div class="icon-circle rounded-circle d-inline-flex align-items-center justify-content-center shadow mb-3">
+                    <i class="bi bi-cart-check-fill fs-1"></i>
+                </div>
+                <h3 class="fw-bold mb-1 gold-text" style="font-family:Georgia,serif;">
+                    {% if lang == 'de' %}Sicherer Checkout{% else %}Secure Checkout{% endif %}
+                </h3>
+                <p class="mb-0 text-white-50">
+                    {% if lang == 'de' %}GaneSha Bestell- & Zahlungsbestätigung{% else %}GaneSha Order & Payment Confirmation{% endif %}
+                </p>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" id="checkoutForm" onsubmit="handleCheckoutSubmission(event)">
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold blue-text small">
+                            <i class="bi bi-geo-alt-fill gold-text me-1"></i>
+                            {% if lang == 'de' %}Lieferadresse{% else %}Delivery Address{% endif %}
+                        </label>
+                        <textarea name="address" class="form-control rounded-4 shadow-sm" rows="3" required>{{ profile.address }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold blue-text small">
+                            <i class="bi bi-telephone-fill gold-text me-1"></i>
+                            {% if lang == 'de' %}Telefonnummer{% else %}Phone Number{% endif %}
+                        </label>
+                        <input type="tel" name="phone" class="form-control rounded-pill shadow-sm" value="{{ profile.phone_number }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold blue-text small">
+                            <i class="bi bi-bag-check-fill gold-text me-1"></i>
+                            {% if lang == 'de' %}Menge{% else %}Quantity{% endif %}
+                        </label>
+                        <input type="number" name="quantity" class="form-control rounded-pill shadow-sm" value="1" min="1" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold blue-text small">
+                            <i class="bi bi-credit-card gold-text me-1"></i>
+                            {% if lang == 'de' %}Zahlungsart wählen{% else %}Select Payment Method{% endif %}
+                        </label>
+
+                        <div class="form-check border rounded-4 p-3 mb-3 shadow-sm bg-light pay-option">
+                            <input class="form-check-input ms-1" type="radio" name="payment_method" value="PAYPAL" id="p1" required>
+                            <label class="form-check-label ms-2 fw-semibold blue-text" for="p1">
+                                <i class="bi bi-paypal gold-text me-1"></i> PayPal Platform
+                            </label>
+                        </div>
+
+                        <div class="form-check border rounded-4 p-3 mb-3 shadow-sm bg-light pay-option">
+                            <input class="form-check-input ms-1" type="radio" name="payment_method" value="CARD" id="p2">
+                            <label class="form-check-label ms-2 fw-semibold blue-text" for="p2">
+                                <i class="bi bi-credit-card-2-front-fill gold-text me-1"></i>
+                                {% if lang == 'de' %}Kredit- / Debitkarte{% else %}Credit / Debit Card{% endif %}
+                            </label>
+                        </div>
+
+                        <div class="form-check border gold-border rounded-4 p-3 mb-3 shadow-sm bg-warning bg-opacity-10 pay-option">
+                            <input class="form-check-input ms-1" type="radio" name="payment_method" value="COD" id="p3" checked>
+                            <label class="form-check-label ms-2 fw-semibold blue-text" for="p3">
+                                <i class="bi bi-cash-coin gold-text me-1"></i>
+                                {% if lang == 'de' %}Barzahlung bei Lieferung{% else %}Cash On Delivery{% endif %}
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-blue w-100 rounded-pill py-3 fw-bold shadow text-uppercase">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        {% if lang == 'de' %}Bestellung bestätigen{% else %}Confirm Order{% endif %}
+                    </button>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ⚡ SYSTEM AUTOMATION & INTERFACE TRANSITION ENGINE -->
+<script>
+    function handleCheckoutSubmission(event) {
+        // Intercepts structural submit trigger to show transitional pipeline milestones
+        document.getElementById('checkoutForm').style.opacity = '0.3';
+        document.getElementById('processingOverlay').style.display = 'flex';
+        
+        // Simulates automated validation steps prior to standard form processing loops
+        setTimeout(function() {
+            const messageElement = document.getElementById('statusMessage');
+            const subtextElement = document.getElementById('statusSubtext');
+            
+            // Mutate state feedback dynamically to processing
+            messageElement.innerText = "{% if lang == 'de' %}In Bearbeitung...{% else %}Processing Transaction...{% endif %}";
+            subtextElement.innerText = "{% if lang == 'de' %}Ihre Bestellung wird an die Küche übermittelt...{% else %}Syncing record indices with manager dispatch logs.{% endif %}";
+        }, 1800);
+    }
+</script>
+
+{% endblock %}

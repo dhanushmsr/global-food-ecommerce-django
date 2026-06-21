@@ -1,0 +1,154 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+.gold-text{color:#d4af37}
+.blue-text{color:#071b3a}
+.gold-border{border-color:#d4af37!important}
+.profile-header{background:linear-gradient(135deg,#071b3a,#0b2a55)}
+.profile-card{animation:profileFade .35s ease;transition:.25s}
+.profile-card:hover{transform:translateY(-3px)}
+.icon-circle{width:70px;height:70px;background:#d4af37;color:#071b3a}
+.btn-blue{background:#071b3a;color:#d4af37;border:1px solid #d4af37}
+.btn-blue:hover{background:#d4af37;color:#071b3a}
+.btn-gold{background:#d4af37;color:#071b3a;border:1px solid #d4af37}
+.btn-gold:hover{background:#071b3a;color:#d4af37}
+.profile-editable-input:focus{border-color:#d4af37!important;box-shadow:0 0 0 .2rem rgba(212,175,55,.25)!important}
+.edit-active{border-color:#d4af37!important}
+.animate-fade-in{animation:actionFade .25s ease-in-out forwards}
+@keyframes actionFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes profileFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+<div class="row justify-content-center my-5">
+    <div class="col-lg-6 col-md-8">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white profile-card">
+            <div class="profile-header text-white text-center p-4 position-relative">
+                <div class="icon-circle rounded-circle d-inline-flex align-items-center justify-content-center shadow mb-3"><i class="bi bi-person-badge-fill fs-2"></i></div>
+                <h4 class="fw-bold gold-text mb-1" style="font-family:Georgia,serif;">{% if lang == 'de' %}Mein Profil verwalten{% else %}Manage My Profile{% endif %}</h4>
+                <p class="mb-0 text-white-50 small">{% if lang == 'de' %}Aktualisieren Sie Ihre Daten jederzeit sicher{% else %}Securely update your details at any time{% endif %}</p>
+                <button type="button" id="toggleEditBtn" class="btn btn-gold btn-sm fw-bold rounded-pill shadow-sm position-absolute top-0 end-0 m-3 px-3 py-1"><i class="bi bi-pencil-square me-1"></i>{% if lang == 'de' %}Bearbeiten{% else %}Edit{% endif %}</button>
+            </div>
+            <div class="card-body p-4">
+                {% if success_message %}
+                <div class="alert alert-success border-0 rounded-4 py-2 small text-center fw-semibold shadow-sm mb-3"><i class="bi bi-check-circle-fill me-1"></i>{{ success_message }}</div>
+                {% endif %}
+                {% if error %}
+                <div class="alert alert-danger border-0 rounded-4 py-2 small text-center fw-semibold shadow-sm mb-3"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                {% endif %}
+                <form method="POST" action="{% url 'update_profile' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold blue-text">{% if lang == 'de' %}Vorname{% else %}First Name{% endif %}</label>
+                            <input type="text" name="first_name" class="form-control rounded-pill profile-editable-input" value="{{ user.first_name }}" required disabled>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold blue-text">{% if lang == 'de' %}Nachname{% else %}Last Name{% endif %}</label>
+                            <input type="text" name="last_name" class="form-control rounded-pill profile-editable-input" value="{{ user.last_name }}" required disabled>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold blue-text"><i class="bi bi-envelope-fill gold-text me-1"></i>{% if lang == 'de' %}E-Mail-Adresse{% else %}Email Address{% endif %}</label>
+                            <input type="email" name="email" class="form-control rounded-pill profile-editable-input" value="{{ user.email }}" required disabled>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold blue-text"><i class="bi bi-telephone-fill gold-text me-1"></i>{% if lang == 'de' %}Telefonnummer{% else %}Phone Number{% endif %}</label>
+                            <div class="input-group">
+                                <select name="country_code" id="form_country_code" class="form-select profile-editable-input rounded-start-pill" style="max-width:100px;" required disabled>
+                                    <option value="+49" {% if profile.phone_number|slice:":3" == "+49" %}selected{% endif %}>+49</option>
+                                    <option value="+91" {% if profile.phone_number|slice:":3" == "+91" %}selected{% endif %}>+91</option>
+                                </select>
+                                <input type="tel" name="phone_raw" id="form_phone_raw" class="form-control profile-editable-input rounded-end-pill" placeholder="{% if lang == 'de' %}Geben Sie Ihre Telefonnummer ein{% else %}Enter Your Phone Number{% endif %}" required disabled>
+                            </div>
+                            <small class="text-warning fw-semibold d-block mt-2" style="font-size: 0.8rem;">
+                                <i class="bi bi-info-circle me-1"></i>
+                                {% if lang == 'de' %}Hinweis: Wenn Sie Ihre Telefonnummer ändern, werden Sie aus Sicherheitsgründen abgemeldet und müssen sich neu anmelden.{% else %}Note: Changing your phone number will log you out. You must use your new number to log back in.{% endif %}
+                            </small>
+                        </div>
+                        <div class="col-12 mb-2">
+                            <label class="form-label small fw-bold blue-text"><i class="bi bi-geo-alt-fill gold-text me-1"></i>{% if lang == 'de' %}Standard-Lieferadresse{% else %}Default Delivery Address{% endif %}</label>
+                            <textarea name="address" class="form-control rounded-4 profile-editable-input" rows="2" required disabled>{{ profile.address }}</textarea>
+                        </div>
+                    </div>
+                    <div id="actionButtonGroup" class="d-none animate-fade-in mt-3">
+                        <hr class="text-muted opacity-25 my-3">
+                        <div class="d-flex gap-2">
+                            <button type="button" id="cancelEditBtn" class="btn btn-outline-secondary w-50 rounded-pill fw-semibold py-2">{% if lang == 'de' %}Abbrechen{% else %}Cancel{% endif %}</button>
+                            <button type="submit" class="btn btn-blue w-50 rounded-pill fw-bold py-2 shadow-sm text-uppercase"><i class="bi bi-cloud-arrow-up-fill me-1"></i>{% if lang == 'de' %}Speichern{% else %}Save Changes{% endif %}</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="mt-4 pt-3 border-top text-center">
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                        <i class="bi bi-trash-fill me-1"></i>{% if lang == 'de' %}Konto löschen{% else %}Delete Account{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">{% if lang == 'de' %}Konto löschen?{% else %}Delete Account?{% endif %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-muted small">
+                {% if lang == 'de' %}Sind Sie sicher? Diese Aktion ist unwiderruflich.{% else %}Are you sure? This action is permanent and cannot be undone.{% endif %}
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'delete_profile' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">{% if lang == 'de' %}Ja, löschen{% else %}Yes, Delete{% endif %}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+    const toggleBtn=document.getElementById("toggleEditBtn");
+    const cancelBtn=document.getElementById("cancelEditBtn");
+    const actionGroup=document.getElementById("actionButtonGroup");
+    const inputs=document.querySelectorAll(".profile-editable-input");
+    const databasePhoneString="{{ profile.phone_number|default:'' }}";
+    const phoneInputNode=document.getElementById("form_phone_raw");
+    
+    if(databasePhoneString&&phoneInputNode){
+        if(databasePhoneString.startsWith("+49")||databasePhoneString.startsWith("+91")){
+            phoneInputNode.value=databasePhoneString.substring(3);
+        }else{
+            phoneInputNode.value=databasePhoneString;
+        }
+    }
+    
+    let initialValues=[];
+    
+    toggleBtn.addEventListener("click",function(){
+        initialValues=Array.from(inputs).map(input=>input.value);
+        inputs.forEach(input=>{
+            input.removeAttribute("disabled");
+            input.classList.add("edit-active");
+        });
+        actionGroup.classList.remove("d-none");
+        toggleBtn.classList.add("disabled");
+        toggleBtn.setAttribute("disabled","true");
+    });
+    
+    cancelBtn.addEventListener("click",function(){
+        inputs.forEach((input,index)=>{
+            input.value=initialValues[index];
+            input.setAttribute("disabled","true");
+            input.classList.remove("edit-active");
+        });
+        actionGroup.classList.add("d-none");
+        toggleBtn.classList.remove("disabled");
+        toggleBtn.removeAttribute("disabled");
+    });
+});
+</script>
+{% endblock %}

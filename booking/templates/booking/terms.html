@@ -1,0 +1,235 @@
+{% extends 'booking/base.html' %}
+{% block content %}
+
+<style>
+    /* Luxury Banner Styling */
+    .hero-banner {
+        background: linear-gradient(135deg, #071b3a, #0b2a55) !important;
+        border-radius: 2rem;
+        box-shadow: 0 25px 55px rgba(7, 27, 58, 0.15);
+        border-bottom: 5px solid #d4af37;
+        border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .gold-text { color: #d4af37; }
+    .blue-text { color: #071b3a; }
+    
+    /* Sticky Table of Contents */
+    .toc-wrapper {
+        position: sticky;
+        top: 100px;
+        background: #fff;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .toc-link {
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: 0.2s;
+        border-left: 3px solid transparent;
+        padding: 8px 15px;
+        display: block;
+        text-decoration: none;
+    }
+    .toc-link:hover {
+        color: #071b3a;
+        background: rgba(212, 175, 55, 0.05);
+        border-left-color: #d4af37;
+    }
+    
+    /* Legal Text Sections */
+    .legal-section { margin-bottom: 3.5rem; scroll-margin-top: 110px; }
+    .legal-section h3 { 
+        color: #071b3a; 
+        font-weight: 700; 
+        margin-bottom: 1.2rem; 
+        border-bottom: 2px solid rgba(212, 175, 55, 0.2); 
+        padding-bottom: 0.5rem; 
+        font-size: 1.5rem;
+    }
+    .legal-section p, .legal-section li { color: #4b5563; line-height: 1.8; }
+
+    /* Custom Checkbox Styling */
+    .custom-checkbox-wrap .form-check-input {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-color: #d4af37;
+        cursor: pointer;
+    }
+    .custom-checkbox-wrap .form-check-input:checked {
+        background-color: #d4af37;
+        border-color: #d4af37;
+    }
+    .custom-checkbox-wrap .form-check-label {
+        padding-top: 0.2rem;
+        cursor: pointer;
+    }
+</style>
+
+<!-- HERO BANNER -->
+<div class="hero-banner p-5 mb-5 text-white rounded-5 shadow-lg">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <span class="badge bg-white text-dark px-3 py-2 mb-3 shadow-sm">
+                <i class="bi bi-shield-check me-1" style="color: #d4af37;"></i>
+                {% if lang == 'de' %}Zuletzt aktualisiert: Juni 2026{% else %}Last Updated: June 2026{% endif %}
+            </span>
+            <h1 class="display-4 fw-bold gold-text" style="font-family:Georgia,serif;">
+                {% if lang == 'de' %}Allgemeine Geschäftsbedingungen{% else %}Terms & Conditions{% endif %}
+            </h1>
+            <p class="fs-5 text-white-50 mb-0">
+                {% if lang == 'de' %}Bitte lesen Sie diese Bedingungen sorgfältig durch, bevor Sie unseren Service nutzen.{% else %}Please read these terms carefully before using our service.{% endif %}
+            </p>
+        </div>
+        <!-- Print Button for Legal Records -->
+        <div class="col-md-4 text-md-end mt-4 mt-md-0 d-none d-md-block">
+            <button onclick="window.print()" class="btn btn-outline-light rounded-pill px-4">
+                <i class="bi bi-printer me-2"></i>{% if lang == 'de' %}Drucken{% else %}Print{% endif %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CONTENT LAYOUT -->
+<div class="row g-5 mb-5">
+    
+    <!-- LEFT: Sticky Table of Contents (Hidden on very small screens) -->
+    <div class="col-lg-3 d-none d-lg-block">
+        <div class="toc-wrapper rounded-4 p-3 shadow-sm">
+            <h6 class="fw-bold blue-text text-uppercase mb-3 px-3">
+                {% if lang == 'de' %}Inhalt{% else %}Table of Contents{% endif %}
+            </h6>
+            <nav class="nav flex-column">
+                <a class="toc-link" href="#section-1">1. {% if lang == 'de' %}Allgemeine Bestimmungen{% else %}General Provisions{% endif %}</a>
+                <a class="toc-link" href="#section-2">2. {% if lang == 'de' %}Registrierung & Konto{% else %}Registration & Accounts{% endif %}</a>
+                <a class="toc-link" href="#section-3">3. {% if lang == 'de' %}Bestellungen & Zahlung{% else %}Orders & Payments{% endif %}</a>
+                <a class="toc-link" href="#section-4">4. {% if lang == 'de' %}Lieferung & Abholung{% else %}Delivery & Pickup{% endif %}</a>
+                <a class="toc-link" href="#section-5">5. {% if lang == 'de' %}Stornierung & Rückerstattung{% else %}Cancellation & Refunds{% endif %}</a>
+                <a class="toc-link" href="#section-6">6. {% if lang == 'de' %}Datenschutz{% else %}Privacy Policy{% endif %}</a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- RIGHT: Legal Text Content -->
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5 bg-white mb-4">
+            
+            <!-- SECTION 1 -->
+            <div id="section-1" class="legal-section">
+                <h3>1. {% if lang == 'de' %}Allgemeine Bestimmungen{% else %}General Provisions{% endif %}</h3>
+                <p>
+                    {% if lang == 'de' %}
+                    Willkommen im Ganesha Restaurant Portal. Diese Allgemeinen Geschäftsbedingungen (AGB) regeln Ihre Nutzung unserer Website und unserer Dienstleistungen für Lebensmittelbestellungen in Munderkingen und Umgebung. Durch den Zugriff auf unsere Plattform stimmen Sie diesen Bedingungen zu.
+                    {% else %}
+                    Welcome to the Ganesha Restaurant Portal. These Terms and Conditions govern your use of our website and our food ordering services in Munderkingen and surrounding areas. By accessing our platform, you agree to be bound by these terms.
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- SECTION 2 -->
+            <div id="section-2" class="legal-section">
+                <h3>2. {% if lang == 'de' %}Registrierung & Konto{% else %}Registration & Accounts{% endif %}</h3>
+                <ul>
+                    {% if lang == 'de' %}
+                        <li>Um Bestellungen aufzugeben, müssen sich Benutzer mit einer gültigen Telefonnummer und E-Mail-Adresse registrieren.</li>
+                        <li>Sie sind für die Geheimhaltung Ihres Passworts und Ihres Kontos verantwortlich.</li>
+                        <li>Wir behalten uns das Recht vor, Konten zu sperren, die betrügerische Aktivitäten oder gefälschte Informationen aufweisen.</li>
+                    {% else %}
+                        <li>To place orders, users must register with a valid phone number and email address.</li>
+                        <li>You are responsible for maintaining the confidentiality of your password and account.</li>
+                        <li>We reserve the right to suspend accounts that exhibit fraudulent activity or fake information.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- SECTION 3 -->
+            <div id="section-3" class="legal-section">
+                <h3>3. {% if lang == 'de' %}Bestellungen & Zahlung{% else %}Orders & Payments{% endif %}</h3>
+                <p>
+                    {% if lang == 'de' %}
+                    Alle auf der Website angezeigten Preise enthalten die gesetzliche Mehrwertsteuer (MwSt.). Wir akzeptieren Zahlungen über unser sicheres Online-Gateway (Mollie) oder per Barzahlung bei Lieferung/Abholung. Eine Bestellung gilt erst als bestätigt, wenn Sie eine Bestätigungs-E-Mail oder SMS von unserem System erhalten.
+                    {% else %}
+                    All prices displayed on the website include applicable Value Added Tax (VAT). We accept payments via our secure online gateway (Mollie) or Cash on Delivery/Pickup. An order is only considered confirmed once you receive a confirmation email or SMS from our system.
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- SECTION 4 -->
+            <div id="section-4" class="legal-section">
+                <h3>4. {% if lang == 'de' %}Lieferung & Abholung{% else %}Delivery & Pickup{% endif %}</h3>
+                <p>
+                    {% if lang == 'de' %}
+                    Lieferzeiten sind Schätzungen und können aufgrund von hohem Bestellaufkommen oder Wetterbedingungen variieren. Wir bemühen uns, Ihre Lebensmittel heiß und frisch zu liefern. Bitte stellen Sie sicher, dass Ihre angegebene Lieferadresse korrekt ist.
+                    {% else %}
+                    Delivery times are estimates and may vary due to high order volumes or weather conditions. We strive to deliver your food hot and fresh. Please ensure your provided delivery address is accurate.
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- SECTION 5 -->
+            <div id="section-5" class="legal-section">
+                <h3>5. {% if lang == 'de' %}Stornierung & Rückerstattung{% else %}Cancellation & Refunds{% endif %}</h3>
+                <ul>
+                    {% if lang == 'de' %}
+                        <li>Bestellungen können nur storniert werden, solange sie sich im Status "Wird überprüft" (Verifying) befinden.</li>
+                        <li>Sobald die Küche mit der Zubereitung der Mahlzeit begonnen hat, sind Stornierungen nicht mehr möglich.</li>
+                        <li>Rückerstattungen für stornierte Online-Zahlungen werden innerhalb von 3-5 Werktagen über die ursprüngliche Zahlungsmethode bearbeitet.</li>
+                    {% else %}
+                        <li>Orders can only be cancelled while they are in the "Verifying" status.</li>
+                        <li>Once the kitchen has started preparing the meal, cancellations are no longer permitted.</li>
+                        <li>Refunds for cancelled online payments will be processed within 3-5 business days via the original payment method.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- SECTION 6 -->
+            <div id="section-6" class="legal-section mb-0">
+                <h3>6. {% if lang == 'de' %}Datenschutz{% else %}Privacy Policy{% endif %}</h3>
+                <p>
+                    {% if lang == 'de' %}
+                    Der Schutz Ihrer Daten hat für uns höchste Priorität. Wir verwenden Ihre persönlichen Daten (Name, Telefon, E-Mail, Adresse) ausschließlich zur Auftragsabwicklung und Kontoverwaltung. Ihre Zahlungsdaten werden sicher von unserem Zahlungsanbieter verarbeitet und nicht auf unseren Servern gespeichert.
+                    {% else %}
+                    Protecting your data is our highest priority. We use your personal data (name, phone, email, address) solely for order processing and account management. Your payment details are processed securely by our payment provider and are not stored on our servers.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- ACKNOWLEDGMENT & NAVIGATION BOX -->
+        <div class="card shadow-sm border-0 rounded-4 p-4 mt-4" style="background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.3) !important;">
+            <div class="form-check custom-checkbox-wrap d-flex align-items-center mb-4">
+                <input class="form-check-input flex-shrink-0" type="checkbox" id="tc-agree-checkbox">
+                <label class="form-check-label ms-3 fw-bold blue-text" for="tc-agree-checkbox">
+                    {% if lang == 'de' %}Ich habe die Allgemeinen Geschäftsbedingungen gelesen und bin damit einverstanden.{% else %}I have read, understood, and agree to the Terms & Conditions.{% endif %}
+                </label>
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                <a href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'welcome' %}{% endif %}" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold w-100 w-sm-auto">
+                    <i class="bi bi-arrow-left me-2"></i>{% if lang == 'de' %}Zurück zur Startseite{% else %}Back to Home{% endif %}
+                </a>
+                
+                <a href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'welcome' %}{% endif %}" id="tc-continue-btn" class="btn btn-gold rounded-pill px-5 fw-bold disabled w-100 w-sm-auto">
+                    {% if lang == 'de' %}Zustimmen & Weiter{% else %}Agree & Continue{% endif %} <i class="bi bi-check2-circle ms-2"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const checkbox = document.getElementById('tc-agree-checkbox');
+    const continueBtn = document.getElementById('tc-continue-btn');
+
+    checkbox.addEventListener('change', function() {
+        if (this.checked) {
+            continueBtn.classList.remove('disabled');
+        } else {
+            continueBtn.classList.add('disabled');
+        }
+    });
+});
+</script>
+
+{% endblock %}

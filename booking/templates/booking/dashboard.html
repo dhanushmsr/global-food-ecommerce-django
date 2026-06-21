@@ -1,0 +1,243 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+/* 🚀 UPDATED: Prepared orders-header for dynamic background image with overlay */
+.orders-header {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    border-bottom: 3px solid #d4af37;
+}
+.gold-text{color:#d4af37}
+.blue-text{color:#12345c}
+.orders-card{animation:fadeOrder .35s ease;transition:.25s}
+.orders-card:hover{transform:translateY(-3px)}
+.action-btn{transition:.25s}
+.action-btn:hover{transform:translateY(-2px)}
+.btn-blue{background:#12345c;color:#d4af37;border:1px solid #d4af37}
+.btn-blue:hover{background:#d4af37;color:#12345c}
+.btn-gold{background:#d4af37;color:#12345c;border:1px solid #d4af37}
+.btn-gold:hover{background:#12345c;color:#d4af37}
+.order-row{transition:.2s}
+.order-row:hover{background:#fff9e6}
+.table td,.table th{white-space:nowrap}
+@keyframes fadeOrder{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+
+/* 📱 RESPONSIVE VISIBILITY LAYOUT MATRIX */
+@media(max-width:767.98px){
+    .desktop-table-container { display: none !important; }
+    .mobile-cards-container { display: block !important; }
+}
+@media(min-width:768px){
+    .desktop-table-container { display: block !important; }
+    .mobile-cards-container { display: none !important; }
+}
+</style>
+
+<div class="row justify-content-center my-4">
+    <div class="col-12 col-md-10">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white orders-card">
+            
+            <div class="orders-header text-white p-4 p-md-5" style="background: linear-gradient(135deg, rgba(18, 52, 92, 0.90), rgba(31, 75, 122, 0.96)), url('{% static 'booking/images/hotel.png' %}');">
+                <h3 class="fw-bold gold-text mb-1" style="font-family:Georgia,serif;">
+                    <i class="bi bi-receipt-cutoff me-2"></i>
+                    {% if lang == 'de' %}Deine Bestellungen{% else %}Your Orders{% endif %}
+                </h3>
+                <p class="mb-0 text-white-50 small fs-6">
+                    {% if lang == 'de' %}Live-Fortschrittsaktualisierungen aus der GaneSha-K&uuml;che{% else %}Live progress updates from the GaneSha Kitchen{% endif %}
+                </p>
+            </div>
+
+            <div class="card-body p-3 p-md-4" id="orders-refresh-zone">
+                {% if orders %}
+                    
+                    <div class="table-responsive rounded-4 desktop-table-container">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="small text-uppercase">
+                                <tr class="table-light">
+                                    <th>{% if lang == 'de' %}Service{% else %}Service{% endif %}</th>
+                                    <th>{% if lang == 'de' %}Zahlung{% else %}Payment{% endif %}</th>
+                                    <th>{% if lang == 'de' %}Gesamtsumme{% else %}Total{% endif %}</th>
+                                    <th>{% if lang == 'de' %}Status{% else %}Status{% endif %}</th>
+                                    <th class="text-end">{% if lang == 'de' %}Aktionen{% else %}Actions{% endif %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr class="order-row">
+                                    <td>
+                                        <span class="badge rounded-pill bg-secondary px-3">
+                                            {{ order.get_order_type_display }}
+                                        </span>
+                                        
+                                        <small class="d-block mt-1 {% if order.estimated_time == '130 Mins' or not order.estimated_time %}text-danger fw-bold{% else %}text-success fw-bold{% endif %}">
+                                            <i class="bi bi-clock-history gold-text me-1"></i>
+                                            {{ order.estimated_time|default:"130 Mins" }}
+                                        </small>
+                                    </td>
+                                    
+                                    <td>
+                                        <span class="badge bg-light text-dark border rounded-pill px-3">
+                                            {{ order.get_payment_method_display }}
+                                        </span>
+                                        <small class="d-block text-muted mt-1 px-1">
+                                            <b>{% if lang == 'de' %}Zahlungsstatus{% else %}Pay Status{% endif %}:</b> {{ order.payment_status }}
+                                        </small>
+                                    </td>
+                                    
+                                    <td class="fw-bold gold-text fs-6">
+                                        &euro;{{ order.final_amount }}
+                                    </td>
+                                    
+                                    <td>
+                                        {% if order.status == 'DELIVERED' or order.status == 'completed' %}
+                                        <span class="badge bg-success rounded-pill px-3 py-2">
+                                            <i class="bi bi-check-circle-fill me-1"></i>
+                                            {% if lang == 'de' %}Geliefert{% else %}Delivered{% endif %}
+                                        </span>
+                                        {% elif order.status == 'CANCELLED' or order.status == 'failed' %}
+                                        <span class="badge bg-danger rounded-pill px-3 py-2">
+                                            <i class="bi bi-x-circle-fill me-1"></i>
+                                            {% if lang == 'de' %}Storniert{% else %}Cancelled{% endif %}
+                                        </span>
+                                        {% elif order.status == 'OUT_FOR_DELIVERY' %}
+                                        <span class="badge bg-info text-dark rounded-pill px-3 py-2">
+                                            <i class="bi bi-truck me-1"></i>
+                                            {% if lang == 'de' %}Unterwegs{% else %}On The Way{% endif %}
+                                        </span>
+                                        {% elif order.status == 'PREPARING' %}
+                                        <span class="badge bg-primary rounded-pill px-3 py-2">
+                                            <i class="bi bi-hourglass-split me-1"></i>
+                                            {% if lang == 'de' %}In Zubereitung{% else %}Preparing{% endif %}
+                                        </span>
+                                        {% elif order.status == 'PLACED' or order.status == 'ordered' or order.status == 'verifying' %}
+                                        <span class="badge btn-gold rounded-pill px-3 py-2">
+                                            <i class="bi bi-info-circle-fill me-1"></i>
+                                            {% if lang == 'de' %}Verifizierung{% else %}Verifying{% endif %}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                            <i class="bi bi-info-circle-fill me-1"></i>
+                                            {{ order.status }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-2 flex-wrap justify-content-end">
+                                            <a href="{% url 'reorder_past_items' order.id %}" class="btn btn-gold btn-sm rounded-pill fw-bold px-3 shadow-sm action-btn">
+                                                <i class="bi bi-arrow-repeat me-1"></i>
+                                                {% if lang == 'de' %}Wiederholen{% else %}Reorder{% endif %}
+                                            </a>
+                                            
+                                            {% if order.status == 'PLACED' or order.status == 'ordered' or order.status == 'PREPARING' or order.status == 'verifying' %}
+                                            <a href="{% url 'cancel_order' order.id %}" class="btn btn-outline-danger btn-sm rounded-pill fw-semibold px-3 action-btn">
+                                                <i class="bi bi-x-circle me-1"></i>
+                                                {% if lang == 'de' %}Stornieren{% else %}Cancel{% endif %}
+                                            </a>
+                                            {% endif %}
+                                            
+                                            <a href="{% url 'view_bill' order.id %}" target="_blank" class="btn btn-blue btn-sm rounded-pill fw-bold px-3 shadow-sm action-btn">
+                                                <i class="bi bi-printer-fill me-1"></i>
+                                                {% if lang == 'de' %}Rechnung{% else %}Bill{% endif %}
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mobile-cards-container d-none">
+                        {% for order in orders %}
+                        <div class="card border border-light shadow-sm rounded-4 mb-3 p-3 bg-white border-start border-4 {% if order.status == 'DELIVERED' or order.status == 'completed' %}border-success{% elif order.status == 'CANCELLED' or order.status == 'failed' %}border-danger{% else %}border-warning{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-dark rounded-pill" style="font-size:0.75rem;">
+                                    {{ order.get_order_type_display }}
+                                </span>
+                                
+                                {% if order.status == 'DELIVERED' or order.status == 'completed' %}
+                                    <span class="badge bg-success rounded-pill text-uppercase" style="font-size:0.7rem;">{% if lang == 'de' %}Geliefert{% else %}Delivered{% endif %}</span>
+                                {% elif order.status == 'CANCELLED' or order.status == 'failed' %}
+                                    <span class="badge bg-danger rounded-pill text-uppercase" style="font-size:0.7rem;">{% if lang == 'de' %}Storniert{% else %}Cancelled{% endif %}</span>
+                                {% elif order.status == 'OUT_FOR_DELIVERY' %}
+                                    <span class="badge bg-info text-dark rounded-pill text-uppercase" style="font-size:0.7rem;">{% if lang == 'de' %}Unterwegs{% else %}On The Way{% endif %}</span>
+                                {% elif order.status == 'PREPARING' %}
+                                    <span class="badge bg-primary rounded-pill text-uppercase" style="font-size:0.7rem;">{% if lang == 'de' %}Zubereitung{% else %}Preparing{% endif %}</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark rounded-pill text-uppercase" style="font-size:0.7rem;">{% if lang == 'de' %}Bestellt{% else %}Ordered{% endif %}</span>
+                                {% endif %}
+                            </div>
+
+                            <p class="mb-2 small {% if order.estimated_time == '130 Mins' or not order.estimated_time %}text-danger fw-bold{% else %}text-success fw-bold{% endif %}">
+                                <i class="bi bi-clock-history gold-text me-1"></i> {{ order.estimated_time|default:"130 Mins" }}
+                            </p>
+
+                            <div class="row g-1 small my-1 text-secondary">
+                                <div class="col-6"><strong>{% if lang == 'de' %}Zahlung{% else %}Payment{% endif %}:</strong> {{ order.get_payment_method_display }}</div>
+                                <div class="col-6 text-end"><strong>{% if lang == 'de' %}Zahlungsstatus{% else %}Pay Status{% endif %}:</strong> <span class="badge bg-secondary-subtle text-secondary border">{{ order.payment_status }}</span></div>
+                            </div>
+
+                            <hr class="my-2 opacity-25">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">{% if lang == 'de' %}Gesamtsumme{% else %}Total Amount{% endif %}</small>
+                                    <span class="fw-bold gold-text fs-5">&euro;{{ order.final_amount }}</span>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <a href="{% url 'view_bill' order.id %}" target="_blank" class="btn btn-blue btn-sm rounded-pill fw-bold px-3">
+                                        <i class="bi bi-printer-fill"></i>
+                                    </a>
+                                    <a href="{% url 'reorder_past_items' order.id %}" class="btn btn-gold btn-sm rounded-pill fw-bold px-2">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </a>
+                                    
+                                    {% if order.status == 'PLACED' or order.status == 'ordered' or order.status == 'PREPARING' or order.status == 'verifying' %}
+                                    <a href="{% url 'cancel_order' order.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-2">
+                                        <i class="bi bi-x-circle"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-bag-x fs-1 gold-text"></i>
+                        <h6 class="fw-bold blue-text mt-3">
+                            {% if lang == 'de' %}Keine Bestellungen gefunden{% else %}No Orders Found{% endif %}
+                        </h6>
+                        <p class="small text-muted mb-0">
+                            {% if lang == 'de' %}Du hast noch keine Bestellungen aufgegeben.{% else %}You haven't placed any orders yet.{% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Silently fetch this page every 8 seconds and replace the orders zone to show live updates
+        setInterval(function () {
+            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newOrdersZone = doc.getElementById('orders-refresh-zone');
+                    if(newOrdersZone) {
+                        document.getElementById('orders-refresh-zone').innerHTML = newOrdersZone.innerHTML;
+                    }
+                })
+                .catch(err => console.log("Background sync error:", err));
+        }, 8000); 
+    });
+</script>
+{% endblock %}

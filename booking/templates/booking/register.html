@@ -1,0 +1,157 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+.gold-text{color:#d4af37}
+.blue-text{color:#071b3a}
+.gold-border{border-color:#d4af37!important}
+.register-header{background:linear-gradient(135deg,#071b3a,#0b2a55)}
+.register-card{animation:fadeUp .4s ease;transition:.25s}
+.register-card:hover{transform:translateY(-3px)}
+.logo-box{width:95px;height:95px;object-fit:contain;border:3px solid #d4af37}
+.input-group:focus-within{box-shadow:0 0 0 .2rem rgba(212,175,55,.25)!important}
+.btn-blue{background:#071b3a;color:#d4af37;border:1px solid #d4af37;transition:.25s}
+.btn-blue:hover{background:#d4af37;color:#071b3a;transform:translateY(-2px)}
+.align-textarea-icon{align-items:flex-start;padding-top:.8rem}
+.transition-all{transition:all .2s ease-in-out}
+.form-control:focus,.form-select:focus{box-shadow:none;border-color:#d4af37}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+<div class="row justify-content-center align-items-center my-5">
+    <div class="col-lg-6 col-md-8">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white register-card">
+            <div class="register-header text-white text-center p-4">
+                <img src="{% static 'booking/images/logo_new1.png' %}?v=2" class="bg-white rounded-4 shadow p-2 mb-3 logo-box" alt="Ganesha Logo">
+                <h3 class="fw-bold gold-text mb-1" style="font-family:Georgia,serif;">Registrieren / Register</h3>
+                <p class="mb-0 text-white-50 small">Create your secure profile on GaneSha Portal</p>
+            </div>
+            <div class="card-body p-4">
+                {% if error %}
+                <div class="alert alert-danger border-0 rounded-4 py-2 small text-center fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                {% endif %}
+                <form method="POST" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold blue-text">Vorname / First Name</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+                                <span class="input-group-text border-0 bg-light gold-text"><i class="bi bi-person-fill"></i></span>
+                                <input type="text" name="first_name" class="form-control border-0" required placeholder="{% if lang == 'de' %}Ihr Vorname{% else %}Your First Name{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold blue-text">Nachname / Last Name</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+                                <span class="input-group-text border-0 bg-light gold-text"><i class="bi bi-person-fill"></i></span>
+                                <input type="text" name="last_name" class="form-control border-0" required placeholder="{% if lang == 'de' %}Ihr Nachname{% else %}Your Last Name{% endif %}">
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label small fw-bold blue-text">Telefonnummer / Login Contact</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+                                <span class="input-group-text bg-light border-0 gold-text"><i class="bi bi-telephone-fill"></i></span>
+                                <select name="country_code" class="form-select bg-light border-0 fw-bold" style="max-width:110px;">
+                                    <option value="+49" selected>+49</option>
+                                    <option value="+91">+91</option>
+                                    <option value="+44">+44</option>
+                                    <option value="+1">+1</option>
+                                </select>
+                                <input type="tel" name="phone_raw" class="form-control border-0" required placeholder="{% if lang == 'de' %}Telefonnummer{% else %}Phone Number{% endif %}">
+                            </div>
+                            <small class="text-muted">Select prefix and enter number without leading zero.</small>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label small fw-bold blue-text">E-Mail Adresse / Email</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+                                <span class="input-group-text border-0 bg-light gold-text"><i class="bi bi-envelope-fill"></i></span>
+                                <input type="email" name="email" class="form-control border-0" required placeholder="name@example.com">
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label small fw-bold blue-text">Adresse / Delivery Address</label>
+                            <div class="input-group shadow-sm rounded-4 overflow-hidden border">
+                                <span class="input-group-text border-0 bg-light gold-text align-textarea-icon"><i class="bi bi-geo-alt-fill"></i></span>
+                                <textarea name="address" class="form-control border-0" rows="2" required placeholder="Enter delivery address..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label small fw-bold blue-text">Passwort / Password</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+                                <span class="input-group-text border-0 bg-light gold-text"><i class="bi bi-shield-lock-fill"></i></span>
+                                <input type="password" id="registerPassword" name="password" class="form-control border-0" required placeholder="{% if lang == 'de' %}Passwort eingeben{% else %}Enter Password{% endif %}">
+                                <button type="button" class="input-group-text bg-light border-0 text-muted px-3" onclick="togglePasswordVisibility('registerPassword','regEyeIcon')"><i id="regEyeIcon" class="bi bi-eye blue-text"></i></button>
+                            </div>
+                            
+                            <div class="p-3 bg-light rounded-4 shadow-sm mt-3 border gold-border" id="passwordGuidelinesCard">
+                                <span class="small fw-bold blue-text d-block mb-1"><i class="bi bi-shield-check gold-text me-1"></i>Sicherheits-Check / Security Requirements:</span>
+                                <ul class="list-unstyled m-0 p-0" style="font-size:.8rem;">
+                                    <li id="rule-length" class="text-danger fw-semibold transition-all"><i class="bi bi-x-circle-fill me-1" id="icon-length"></i>{% if lang == 'de' %}Mindestens 8 Zeichen{% else %}Minimum 8 characters{% endif %}</li>
+                                    <li id="rule-upper" class="text-danger fw-semibold transition-all"><i class="bi bi-x-circle-fill me-1" id="icon-upper"></i>{% if lang == 'de' %}Mindestens 1 Großbuchstabe{% else %}At least 1 uppercase letter{% endif %}</li>
+                                    <li id="rule-special" class="text-danger fw-semibold transition-all"><i class="bi bi-x-circle-fill me-1" id="icon-special"></i>{% if lang == 'de' %}Mindestens 1 Sonderzeichen (!@#$ etc.){% else %}At least 1 special character (!@#$ etc.){% endif %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-blue w-100 rounded-pill py-3 fw-bold shadow mt-4 text-uppercase">
+                        <i class="bi bi-person-plus-fill me-1"></i>Registrierung abschließen / Create Account
+                    </button>
+                    
+                    <div class="text-center mt-3 pt-3 border-top">
+                        <span class="small text-muted">Bereits registriert? / Existing Guest?</span>
+                        <a href="{% url 'login' %}" class="gold-text small fw-bold text-decoration-none ms-1">Einloggen / Sign In</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('registerPassword').addEventListener('input',function(){
+    const val=this.value;
+    const hasLen=val.length>=8;
+    const hasUpper=/[A-Z]/.test(val);
+    const hasSpecial=/[!@#$%^&*(),.?":{}|<>_+-]/.test(val);
+    
+    function setRuleState(elementId,iconId,isValid){
+        const item=document.getElementById(elementId);
+        const icon=document.getElementById(iconId);
+        if(isValid){
+            item.classList.remove('text-danger');
+            item.classList.add('text-success');
+            icon.classList.remove('bi-x-circle-fill');
+            icon.classList.add('bi-check-circle-fill');
+        }else{
+            item.classList.remove('text-success');
+            item.classList.add('text-danger');
+            icon.classList.remove('bi-check-circle-fill');
+            icon.classList.add('bi-x-circle-fill');
+        }
+    }
+    
+    setRuleState('rule-length','icon-length',hasLen);
+    setRuleState('rule-upper','icon-upper',hasUpper);
+    setRuleState('rule-special','icon-special',hasSpecial);
+});
+
+function togglePasswordVisibility(inputId,iconId){
+    const passwordField=document.getElementById(inputId);
+    const eyeIcon=document.getElementById(iconId);
+    if(passwordField.type==="password"){
+        passwordField.type="text";
+        eyeIcon.classList.remove("bi-eye");
+        eyeIcon.classList.add("bi-eye-slash");
+    }else{
+        passwordField.type="password";
+        eyeIcon.classList.remove("bi-eye-slash");
+        eyeIcon.classList.add("bi-eye");
+    }
+}
+</script>
+{% endblock %}

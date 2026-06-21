@@ -1,0 +1,65 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+.gold-text{color:#d4af37}
+.blue-text{color:#071b3a}
+.gold-border{border-color:#d4af37!important}
+.verify-card{animation:verifyFade .35s ease;transition:.25s}
+.verify-card:hover{transform:translateY(-3px)}
+
+/* 🚀 FIXED: Optimized brand logo frame style container matching verification pages */
+.brand-logo-frame {
+    width: 85px;
+    height: 85px;
+    object-fit: contain;
+    background: #ffffff;
+    border-radius: 1.25rem;
+    padding: 6px;
+    border: 2px solid #d4af37;
+    box-shadow: 0 8px 20px rgba(212,175,55,0.25);
+}
+
+.btn-blue{background:#071b3a;color:#d4af37;border:1px solid #d4af37}
+.btn-blue:hover{background:#d4af37;color:#071b3a}
+.form-control:focus{border-color:#d4af37;box-shadow:0 0 0 .2rem rgba(212,175,55,.25)}
+.otp-input{letter-spacing:6px}
+@keyframes verifyFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+<div class="row justify-content-center align-items-center" style="min-height:55vh;">
+    <div class="col-md-5">
+        <div class="card shadow-lg border-0 rounded-5 bg-white p-4 verify-card">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    
+                    <!-- 🚀 FIXED: Replaced the old placeholder circle block with your official brand logo framework -->
+                    <div class="text-center mb-3">
+                        <img src="{% static 'booking/images/logo_new1.png' %}" alt="Ganesha Brand Logo" class="img-fluid brand-logo-frame">
+                    </div>
+                    
+                    <h3 class="fw-bold blue-text" style="font-family:Georgia,serif;">{% if lang == 'de' %}Änderungen bestätigen{% else %}Confirm Updates{% endif %}</h3>
+                    <p class="text-muted small">
+                        <!-- 🚀 FIXED: Dynamic descriptive layout detailing multi-channel delivery splits -->
+                        {% if lang == 'de' %}Wir haben einen Bestätigungscode an Ihr Postfach und per SMS an Ihr Mobiltelefon gesendet, um Ihre Identität zu verifizieren.{% else %}We have dropped a security confirmation key to your mailbox and mobile phone via SMS to verify account ownership parameters.{% endif %}
+                    </p>
+                </div>
+                {% if error %}
+                <div class="alert alert-danger text-center rounded-pill small py-2 fw-semibold mb-3 border-0"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ error }}</div>
+                {% endif %}
+                <form method="POST" action="{% url 'verify_profile_update' %}">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold blue-text">{% if lang == 'de' %}Bestätigungscode (6 Ziffern){% else %}Verification Token (6-Digits){% endif %}</label>
+                        <input type="text" name="email_otp" class="form-control form-control-lg rounded-pill text-center font-monospace fw-bold border-2 otp-input" maxlength="6" placeholder="000000" required autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn btn-blue w-100 rounded-pill fw-bold py-2 shadow-sm mb-2"><i class="bi bi-check-circle-fill me-1"></i>{% if lang == 'de' %}Code verifizieren{% else %}Validate Code{% endif %}</button>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'update_profile' %}" class="small text-secondary text-decoration-none"><i class="bi bi-arrow-left-circle me-1"></i>{% if lang == 'de' %}Zurück zum Profil{% else %}Abort and Return{% endif %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

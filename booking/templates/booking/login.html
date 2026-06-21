@@ -1,0 +1,259 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .login-header{background:linear-gradient(135deg,#071b3a,#0b2a55);}
+    .gold-text{color:#d4af37;}
+    .blue-text{color:#071b3a;}
+    .gold-border{border-color:#d4af37!important;}
+    .login-card{animation:loginFade .4s ease;transition:.25s ease;}
+    .login-card:hover{transform:translateY(-3px);}
+    .logo-box{width:95px;height:95px;object-fit:contain;border:3px solid #d4af37;}
+    .input-group{transition:.25s ease;}
+    .input-group:focus-within{
+        box-shadow:0 0 0 .2rem rgba(212,175,55,.25)!important;
+    }
+    .btn-blue{
+        background:#071b3a;
+        color:#d4af37;
+        border:1px solid #d4af37;
+        transition:.25s ease;
+    }
+    .btn-blue:hover{
+        background:#d4af37;
+        color:#071b3a;
+        transform:translateY(-2px);
+    }
+    .link-hover{transition:.2s;}
+    .link-hover:hover{color:#d4af37!important;}
+    @keyframes loginFade{
+        from{opacity:0;transform:translateY(20px);}
+        to{opacity:1;transform:translateY(0);}
+    }
+</style>
+
+
+<div class="row justify-content-center align-items-center" style="min-height:70vh;">
+    <div class="col-lg-4 col-md-6">
+
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white login-card">
+
+            <div class="login-header text-white text-center p-4">
+
+                <img 
+                    src="{% static 'booking/images/logo_new1.png' %}?v=2" 
+                    alt="GaneSha Logo"
+                    class="bg-white rounded-4 shadow p-1 mb-3 logo-box">
+
+                <h3 class="fw-bold mb-1 gold-text" style="font-family:Georgia,serif;">
+                    {% if lang == 'de' %}
+                        Anmeldung
+                    {% else %}
+                        Login
+                    {% endif %}
+                </h3>
+
+                <p class="mb-0 text-white-50">
+                    GaneSha Restaurant Portal
+                </p>
+
+            </div>
+
+
+            <div class="card-body p-4">
+
+                {% if error %}
+                <div class="alert alert-danger rounded-4 py-2 small text-center fw-semibold border-0">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+
+
+                <form method="POST">
+
+                    {% csrf_token %}
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label small fw-bold blue-text">
+
+                            {% if lang == 'de' %}
+                                Telefonnummer
+                            {% else %}
+                                Phone Number
+                            {% endif %}
+
+                        </label>
+
+
+                        <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+
+                            <span class="input-group-text bg-light border-0 gold-text">
+                                <i class="bi bi-telephone-fill"></i>
+                            </span>
+
+
+                            <input 
+                                type="tel"
+                                name="phone"
+                                class="form-control border-0"
+                                required
+                                placeholder="{% if lang == 'de' %}Geben Sie Ihre Telefonnummer ein{% else %}Enter Your Phone Number{% endif %}">
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="mb-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+
+                            <label class="form-label small fw-bold blue-text mb-0">
+
+                                {% if lang == 'de' %}
+                                    Passwort
+                                {% else %}
+                                    Password
+                                {% endif %}
+
+                            </label>
+
+
+                            <a href="{% url 'forgot_password' %}"
+                               class="small gold-text fw-semibold text-decoration-none link-hover">
+
+                                {% if lang == 'de' %}
+                                    Vergessen?
+                                {% else %}
+                                    Forgot?
+                                {% endif %}
+
+                            </a>
+
+                        </div>
+
+
+                        <div class="input-group shadow-sm rounded-pill overflow-hidden border">
+
+                            <span class="input-group-text bg-light border-0 gold-text">
+                                <i class="bi bi-shield-lock-fill"></i>
+                            </span>
+
+
+                            <input 
+                                type="password"
+                                id="loginPassword"
+                                name="password"
+                                class="form-control border-0"
+                                required
+                                placeholder="{% if lang == 'de' %}Passwort eingeben{% else %}Enter Password{% endif %}">
+
+
+                            <button 
+                                type="button"
+                                class="input-group-text bg-light border-0"
+                                onclick="togglePasswordVisibility('loginPassword','eyeIcon')">
+
+                                <i id="eyeIcon" class="bi bi-eye blue-text"></i>
+
+                            </button>
+
+
+                        </div>
+
+                    </div>
+
+
+
+                    <button 
+                        type="submit"
+                        class="btn btn-blue w-100 rounded-pill py-3 fw-bold shadow mb-3 text-uppercase">
+
+                        <i class="bi bi-box-arrow-in-right me-1"></i>
+
+                        {% if lang == 'de' %}
+                            Einloggen
+                        {% else %}
+                            Sign In
+                        {% endif %}
+
+                    </button>
+
+
+
+                    <div class="text-center pt-3 border-top">
+
+                        <span class="text-muted small">
+
+                            {% if lang == 'de' %}
+                                Neu bei GaneSha?
+                            {% else %}
+                                New Guest?
+                            {% endif %}
+
+                        </span>
+
+
+                        <a href="{% url 'register' %}"
+                           class="gold-text small fw-bold ms-1 text-decoration-none link-hover">
+
+                            <i class="bi bi-person-plus-fill me-1"></i>
+
+                            {% if lang == 'de' %}
+                                Registrieren
+                            {% else %}
+                                Register
+                            {% endif %}
+
+                        </a>
+
+
+                    </div>
+
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+
+<script>
+
+function togglePasswordVisibility(inputId,iconId){
+
+    const passwordField=document.getElementById(inputId);
+    const eyeIcon=document.getElementById(iconId);
+
+
+    if(passwordField.type==="password"){
+
+        passwordField.type="text";
+
+        eyeIcon.classList.remove("bi-eye");
+        eyeIcon.classList.add("bi-eye-slash");
+
+    }else{
+
+        passwordField.type="password";
+
+        eyeIcon.classList.remove("bi-eye-slash");
+        eyeIcon.classList.add("bi-eye");
+
+    }
+
+}
+
+</script>
+
+
+{% endblock %}

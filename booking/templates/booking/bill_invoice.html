@@ -1,0 +1,328 @@
+{% extends 'booking/base.html' %}
+{% load static %}  {% block content %}
+
+<style>
+    .invoice-header{background:linear-gradient(135deg,#071b3a,#0b2a55);}
+    .gold-text{color:#d4af37;}
+    .gold-bg{background:#d4af37;color:#071b3a;}
+    .gold-border{border-color:#d4af37!important;}
+    .soft-box{background:#f8f9fa;border:1px solid rgba(212,175,55,.35);}
+    .invoice-card{transition:.3s ease;}
+    .invoice-card:hover{transform:translateY(-3px);}
+    .btn-gold{background:#d4af37;color:#071b3a;border:1px solid #d4af37;}
+    .btn-gold:hover{background:#071b3a;color:#d4af37;}
+    .btn-blue{background:#071b3a;color:#d4af37;border:1px solid #d4af37;}
+    .btn-blue:hover{background:#d4af37;color:#071b3a;}
+    .restaurant-logo { max-height: 65px; width: auto; object-fit: contain; }
+    
+    /* 🚀 TIMELINE PROGRESS DECORATION UTILITIES */
+    .step-icon { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.4s ease; z-index: 2; position: relative;}
+    
+    /* 🔵 NEW THEME BLUE FOR ACTIVE TIMELINE STEPS */
+    .timeline-blue {
+        background-color: #071b3a !important;
+        color: #d4af37 !important;
+        border: 2px solid #071b3a !important;
+    }
+    
+    /* 🔄 FIXED DYNAMIC WIDTH ENGINE */
+    .progress-tracker-bar { height: 4px; z-index: 0; transition: width 0.6s ease-in-out; }
+    .w-ordered { width: 25%; }
+    .w-preparing { width: 50%; }
+    .w-delivered { width: 75%; }
+    .w-completed { width: 100%; }
+    .w-verifying { width: 0%; }
+
+    @media print{
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body, p, h1, h2, h3, h4, h5, h6, span, td, th, div, b, strong, i, small {
+            color: #000000 !important;
+        }
+
+        .invoice-card, .invoice-header, .bg-dark, .bg-primary, .soft-box, .badge {
+            background-color: #ffffff !important;
+            background-image: none !important;
+            box-shadow: none !important;
+        }
+        
+        .badge {
+            border: 1px solid #000000 !important;
+        }
+
+        /* 🎯 CLEAN PRINT ALIGNMENT */
+        @page { size: auto; margin: 0; }
+        body { background: #fff !important; font-size: 11px !important; padding: 5mm !important; }
+        
+        /* HIDDEN ELEMENTS FOR CLEAN PRINT */
+        .navbar, footer, .d-print-none, #timeline-container, #status-alert-container, .print-hide-buttons { display: none !important; }
+        
+        .container, .row, .col-lg-8, .col-xl-7 { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+        #printArea { width: 100% !important; max-width: 80mm !important; margin: 0 auto !important; padding: 10px !important; border: none !important; border-radius: 0 !important; }
+        #printArea .invoice-header { background: #fff !important; color: #000 !important; padding: 5px !important; border-bottom: 2px dashed #000 !important; }
+        
+        h2 { font-size: 18px !important; }
+        h5, h6 { font-size: 12px !important; }
+        p, span, td, th { font-size: 11px !important; }
+        table { margin-bottom: 5px !important; width: 100% !important; }
+        .card-body { padding: 5px !important; }
+        .soft-box { border: none !important; border-bottom: 1px solid #ddd !important; padding: 5px 0 !important; border-radius: 0 !important; }
+    }
+</style>
+
+<div class="row justify-content-center my-5">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white invoice-card" id="printArea">
+            
+            <div class="invoice-header text-white p-4">
+                <div class="row align-items-center">
+                    <div class="col-sm-6 text-center text-sm-start">
+                        <img src="{% static 'booking/images/logo_new1.png' %}?v=2" alt="GaneSha Logo" class="restaurant-logo mb-2 d-inline-block">
+                        <h2 class="fw-bold mb-1 gold-text" style="font-family:Georgia,serif;">GANESHA</h2>
+                        <p class="mb-0 small text-white-50">
+                            {% if lang == 'de' %}Sri-Lanka & Indien in Munderkingen{% else %}Sri-Lanka & India in Munderkingen{% endif %}
+                        </p>
+                    </div>
+                    <div class="col-sm-6 text-center text-sm-end mt-3 mt-sm-0 small text-white-50 border-start-sm border-white-10">
+                        <p class="mb-1 text-white fw-semibold"><i class="bi bi-geo-alt-fill me-1"></i> Wiernsheimer Str. 4</p>
+                        <p class="mb-1">75417 M&uuml;hlacker, Germany</p>
+                        <p class="mb-1"><i class="bi bi-telephone-fill me-1"></i> +49 174 7151698</p>
+                        <p class="mb-0"><i class="bi bi-envelope-fill me-1"></i> n.santhakumar@outlook.de</p>
+                    </div>
+                </div>
+                
+                <hr class="border-white-10 my-3">
+                
+                <div class="text-center">
+                    <span class="badge gold-bg rounded-pill px-3 py-2">
+                        <i class="bi bi-receipt-cutoff me-1"></i>
+                        {% if lang == 'de' %}Rechnung / Beleg{% else %}Official Invoice Receipt{% endif %}
+                    </span>
+                    <p class="small mt-2 mb-0">
+                        {% if lang == 'de' %}Bestellnummer{% else %}Order ID{% endif %}: <b>#{{ order.id }}</b> |
+                        {% if lang == 'de' %}Datum{% else %}Date{% endif %}: {{ order.created_at|date:"d.m.Y H:i" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+
+                <div class="timeline-wrapper mb-5 d-print-none" id="timeline-container">
+                    <div class="position-relative my-4">
+                        <div class="position-absolute top-50 start-0 end-0 translate-middle-y bg-light" style="height: 4px; z-index: 0;"></div>
+                        
+                        <div class="position-absolute top-50 start-0 translate-middle-y timeline-blue progress-tracker-bar 
+                            {% if order.status == 'DELIVERED' %}w-completed
+                            {% elif order.status == 'OUT_FOR_DELIVERY' %}w-delivered
+                            {% elif order.status == 'PREPARING' %}w-preparing
+                            {% elif order.status == 'PLACED' %}w-ordered
+                            {% else %}w-verifying{% endif %}">
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 1;">
+                            
+                            <div class="text-center">
+                                <div class="step-icon {% if order.status == 'PLACED' or order.status == 'PREPARING' or order.status == 'OUT_FOR_DELIVERY' or order.status == 'DELIVERED' %}timeline-blue{% else %}bg-white text-muted border{% endif %} shadow-sm">
+                                    <i class="bi bi-bag-check"></i>
+                                </div>
+                                <p class="small fw-bold mt-2 text-uppercase mb-0" style="font-size:0.75rem;">{% if lang == 'de' %}Erhalten{% else %}Received{% endif %}</p>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="step-icon {% if order.status == 'PREPARING' or order.status == 'OUT_FOR_DELIVERY' or order.status == 'DELIVERED' %}timeline-blue{% else %}bg-white text-muted border{% endif %} shadow-sm">
+                                    <i class="bi bi-fire"></i>
+                                </div>
+                                <p class="small fw-bold mt-2 text-uppercase mb-0" style="font-size:0.75rem;">{% if lang == 'de' %}K&uuml;che{% else %}Kitchen{% endif %}</p>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="step-icon {% if order.status == 'OUT_FOR_DELIVERY' or order.status == 'DELIVERED' %}timeline-blue{% else %}bg-white text-muted border{% endif %} shadow-sm">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                                <p class="small fw-bold mt-2 text-uppercase mb-0" style="font-size:0.75rem;">{% if lang == 'de' %}Unterwegs{% else %}In Transit{% endif %}</p>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="step-icon {% if order.status == 'DELIVERED' %}timeline-blue{% else %}bg-white text-muted border{% endif %} shadow-sm">
+                                    <i class="bi bi-check2-circle"></i>
+                                </div>
+                                <p class="small fw-bold mt-2 text-uppercase mb-0" style="font-size:0.75rem;">{% if lang == 'de' %}Fertig{% else %}Complete{% endif %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="soft-box rounded-4 p-3 h-100">
+                            <h6 class="fw-bold gold-text text-uppercase small mb-3">
+                                <i class="bi bi-person-circle me-1"></i>
+                                {% if lang == 'de' %}Kunde / Kontaktdetails{% else %}Customer Details{% endif %}
+                            </h6>
+                            <p class="mb-2"><b>Name:</b> {{ order.user.first_name }} {{ order.user.last_name }}</p>
+                            <!-- EMAIL HAS BEEN REMOVED FOR DSGVO COMPLIANCE -->
+                            <p class="mb-0"><b>Tel:</b> {{ order.phone_number }}</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="soft-box rounded-4 p-3 h-100">
+                            <h6 class="fw-bold gold-text text-uppercase small mb-3">
+                                <i class="bi bi-truck me-1"></i>
+                                {% if lang == 'de' %}Service & Erf&uuml;llung{% else %}Service & Fulfillment{% endif %}
+                            </h6>
+                            <p class="mb-2">
+                                <b>{% if lang == 'de' %}Typ{% else %}Type{% endif %}:</b>
+                                <span class="badge bg-dark text-white rounded-pill">{{ order.get_order_type_display }}</span>
+                            </p>
+                            <p class="mb-0">
+                                <b>{% if lang == 'de' %}Adresse{% else %}Address{% endif %}:</b> {{ order.delivery_address|default:"N/A" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-list-check me-1 gold-text"></i>
+                    {% if lang == 'de' %}Bestell&uuml;bersicht / Artikelaufschl&uuml;sselung{% else %}Itemized Order Breakdown{% endif %}
+                </h6>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle small mb-4">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>{% if lang == 'de' %}Beschreibung / Artikel{% else %}Description / Item{% endif %}</th>
+                                <th class="text-center">{% if lang == 'de' %}Menge{% else %}Qty{% endif %}</th>
+                                <th class="text-end">{% if lang == 'de' %}Gesamtpreis{% else %}Price Total{% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for breakdown in order.items.all %}
+                            <tr>
+                                <td class="fw-semibold">
+                                    {{ breakdown.food_item_name }}
+                                    <small class="text-muted d-block">&euro;{{ breakdown.unit_price }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary text-white rounded-pill">x{{ breakdown.quantity }}</span>
+                                </td>
+                                <td class="text-end fw-bold">&euro;{{ breakdown.total_price }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ms-auto soft-box rounded-4 p-4 small" style="max-width:420px;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">{% if lang == 'de' %}Zwischensumme{% else %}Subtotal{% endif %}:</span>
+                        <span class="fw-semibold">&euro;{{ order.subtotal }}</span>
+                    </div>
+
+                    {% if order.coupon_applied %}
+                    <div class="d-flex justify-content-between mb-2 text-danger">
+                        <span>{% if lang == 'de' %}Gutschein / Rabatt{% else %}Coupon / Discount{% endif %} ({{ order.coupon_applied.code }}):</span>
+                        <span class="fw-bold">-{{ order.coupon_applied.discount_percentage }}%</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between mb-2 text-muted">
+                        <span>{% if lang == 'de' %}Enthaltene MwSt. (19% & 7%){% else %}Included VAT (19% & 7%){% endif %}:</span>
+                        <span>&euro;{{ order.gst_amount }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">{% if lang == 'de' %}Zahlungsart{% else %}Payment Method{% endif %}:</span>
+                        <span class="badge bg-primary text-white rounded-pill text-uppercase">
+                            {{ order.get_payment_method_display|default:"Online Gateway" }}
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark">{% if lang == 'de' %}Gesamtsumme:{% else %}Grand Total:{% endif %}</h5>
+                        <h2 class="fw-bold mb-0 gold-text">&euro;{{ order.final_amount }}</h2>
+                    </div>
+                </div>
+
+                <div class="status-alert-container" id="status-alert-container">
+                    {% if order.status == 'verifying' %}
+                    <div class="alert alert-warning border-warning rounded-4 text-center mt-4 small bg-warning bg-opacity-10">
+                        <i class="bi bi-shield-exclamation me-1 text-warning"></i>
+                        <b>Status:</b> <span class="badge bg-warning text-dark text-uppercase px-2 py-1">{% if lang == 'de' %}VALIDIERUNG WARTEN{% else %}VERIFYING VALIDATION{% endif %}</span>
+                        <div class="mt-2 text-muted small">{% if lang == 'de' %}Wir pr&uuml;fen Ihre Bestellung. Bitte warten...{% else %}The network system is currently verifying your checkout transaction logs.{% endif %}</div>
+                    </div>
+                    {% elif order.status == 'processing' %}
+                    <div class="alert alert-info border-info rounded-4 text-center mt-4 small bg-info bg-opacity-10">
+                        <i class="bi bi-hourglass-split me-1 text-info"></i>
+                        <b>Status:</b> <span class="badge bg-info text-dark text-uppercase px-2 py-1">{% if lang == 'de' %}IN BEARBEITUNG{% else %}PROCESSING PAYLOAD{% endif %}</span>
+                        <div class="mt-2 text-muted small">{% if lang == 'de' %}Ihre Transaktion wird verarbeitet...{% else %}Hold tight, the operational pipeline engine is registering your placement.{% endif %}</div>
+                    </div>
+                    {% elif order.status == 'failed' or order.status == 'CANCELLED' or order.status == 'cancelled' %}
+                    <div class="alert alert-danger border-danger rounded-4 text-center mt-4 small bg-danger bg-opacity-10">
+                        <i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i>
+                        <b>Status:</b> <span class="badge bg-danger text-white text-uppercase px-2 py-1">{% if lang == 'de' %}FEHLGESCHLAGEN / STORNIERT{% else %}FAILED / CANCELLED{% endif %}</span>
+                        <div class="mt-2 text-muted small">{% if lang == 'de' %}Die Bestellung wurde abgebrochen oder schlug fehl.{% else %}The transaction was cancelled or aborted inside schemas.{% endif %}</div>
+                    </div>
+                    {% else %}
+                    <div class="alert border gold-border rounded-4 text-center mt-4 small bg-light">
+                        <i class="bi bi-check-circle-fill me-1 text-success"></i>
+                        <b>Status:</b> <span class="badge bg-dark text-white text-uppercase px-2 py-1">{{ order.get_status_display }}</span> |
+                        <b>{% if lang == 'de' %}Voraussichtliche Zeit{% else %}Estimated Time{% endif %}:</b> <span class="text-danger fw-bold">{{ order.estimated_time }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="text-center text-muted small mt-4 pt-3 border-top print-hide-buttons">
+                    <p class="mb-1 fw-semibold">Vielen Dank f&uuml;r Ihre Bestellung bei GaneSha!</p>
+                    <p class="mb-0">Thank you for dining with us. Enjoy your meal!</p>
+
+                    <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+                        <a href="{% url 'home' %}" class="btn btn-blue btn-sm px-4 rounded-pill fw-semibold shadow-sm text-uppercase">
+                            <i class="bi bi-arrow-left-circle me-1"></i>
+                            {% if lang == 'de' %}Zur Speisekarte{% else %}Back to Menu{% endif %}
+                        </a>
+                        
+                        <button class="btn btn-gold btn-sm px-4 rounded-pill fw-semibold shadow-sm text-uppercase" onclick="window.print()">
+                            <i class="bi bi-printer me-1"></i>
+                            {% if lang == 'de' %}Rechnung drucken{% else %}Print Bill{% endif %}
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Poll the bill page itself every 8 seconds to check for direct order updates
+        setInterval(function () {
+            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.text())
+                .then(html => {
+                    // Extract the new HTML into a virtual DOM
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Live swap the Timeline (Road Line)
+                    const newTimeline = doc.getElementById('timeline-container');
+                    if(newTimeline) {
+                        document.getElementById('timeline-container').innerHTML = newTimeline.innerHTML;
+                    }
+                    
+                    // Live swap the Status Message Alert box
+                    const newAlerts = doc.getElementById('status-alert-container');
+                    if(newAlerts) {
+                        document.getElementById('status-alert-container').innerHTML = newAlerts.innerHTML;
+                    }
+                })
+                .catch(err => console.log("AJAX Bill synchronization error:", err));
+        }, 8000); 
+    });
+</script>
+
+{% endblock %}

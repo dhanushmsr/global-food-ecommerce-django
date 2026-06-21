@@ -1,0 +1,1006 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+{% block content %}
+
+<!-- ALARM AUDIO (Now set to LOOP) -->
+<audio id="orderNotificationSound" preload="auto" loop>
+    <source src="{% static 'booking/sounds/new-order.mp3' %}" type="audio/mpeg">
+</audio>
+
+<style>
+.gold-text{color:#d4af37}
+.blue-text{color:#12345c}
+.gold-border{border-color:#d4af37!important}
+
+/* 🚀 HERO SECTION */
+.owner-hero{
+    border-radius:2rem;
+    padding:2rem;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:1rem;
+    box-shadow:0 22px 50px rgba(18,52,92,.25);
+    position:relative;
+    overflow:hidden;
+    border-bottom:5px solid #d4af37;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+.owner-hero:before{content:"";position:absolute;right:-70px;top:-70px;width:220px;height:220px;background:rgba(212,175,55,.17);border-radius:50%}
+.owner-hero:after{content:"";position:absolute;left:-55px;bottom:-55px;width:170px;height:170px;background:rgba(255,255,255,.08);border-radius:50%}
+.hero-content{position:relative;z-index:2; color: white;}
+.owner-hero-logo{width:120px;height:120px;object-fit:contain;background:white;border-radius:1.5rem;padding:.55rem;box-shadow:0 15px 35px rgba(0,0,0,.25);position:relative;z-index:2;border:3px solid #d4af37}
+
+/* CARDS & BUTTONS */
+.dashboard-clickable-card{border-radius:1.5rem!important;transition:.25s;background:linear-gradient(135deg,#fff,#fff9db);position:relative;overflow:hidden}
+.dashboard-clickable-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(18,52,92,.16)!important}
+.stat-icon{width:48px;height:48px;border-radius:16px;background:#12345c;color:#d4af37;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.btn-blue{background:#12345c;color:#d4af37;border:1px solid #d4af37}
+.btn-blue:hover{background:#d4af37;color:#12345c}
+.btn-gold{background:#d4af37;color:#12345c;border:1px solid #d4af37}
+.btn-gold:hover{background:#12345c;color:#d4af37}
+
+/* TABLES & TABS */
+.nav-pills .nav-link { background: #fff; border: 1px solid rgba(212, 175, 55, 0.4); color: #12345c !important; box-shadow: 0 6px 15px rgba(18, 52, 92, .05); transition: all 0.2s ease-in-out; }
+.nav-pills .nav-link.active { background: linear-gradient(135deg, #12345c, #1f4b7a) !important; color: #d4af37 !important; border-color: #12345c; }
+.table{border-collapse:separate;border-spacing:0 .45rem}
+.table thead th{border:0;background:#fff9db!important;color:#12345c;font-weight:800; white-space: nowrap;}
+.table tbody tr{background:white;box-shadow:0 5px 16px rgba(18,52,92,.05)}
+.table tbody td{border-top:1px solid #f1f1f1;border-bottom:1px solid #f1f1f1; vertical-align: middle;}
+.table tbody td:first-child{border-left:1px solid #f1f1f1;border-radius:1rem 0 0 1rem}
+.table tbody td:last-child{border-right:1px solid #f1f1f1;border-radius:0 1rem 1rem 0}
+.order-parent-row{transition:.2s}
+.placed-order-row{border-left:5px solid #d4af37!important;background:#fff9db!important}
+
+/* ALARM ANIMATION */
+@keyframes pulse-alarm {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+.alarm-box { animation: pulse-alarm 1.5s infinite; }
+
+@media(max-width:768px){
+    .owner-hero{flex-direction:column;text-align:center;padding:1.5rem}
+    .owner-hero-logo{width:95px;height:95px}
+    .nav-pills{width:100%}
+    .nav-pills .nav-item,.nav-pills .nav-link{width:100%}
+}
+</style>
+
+<!-- 🚨 FULL SCREEN ALARM OVERLAY (Hidden by default) -->
+<div id="newOrderAlarmOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100" style="z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);">
+    <div class="d-flex w-100 h-100 align-items-center justify-content-center">
+        <div class="bg-white p-5 rounded-5 text-center shadow-lg alarm-box" style="max-width: 400px; border: 4px solid #dc3545;">
+            <i class="bi bi-bell-fill text-danger" style="font-size: 5rem;"></i>
+            <h2 class="text-danger fw-bold mt-3 text-uppercase">Neue Bestellung!</h2>
+            <p class="text-muted mb-4 fw-semibold">Sie haben eine neue Bestellung erhalten. Der Alarm ertönt, bis Sie ihn bestätigen.</p>
+            <button class="btn btn-danger btn-lg rounded-pill fw-bold w-100 shadow" onclick="stopAlarmAndRefreshOrders()">
+                <i class="bi bi-check-circle-fill me-2"></i>Bestätigen
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="owner-hero mb-4" style="background: linear-gradient(135deg, rgba(18, 52, 92, 0.90), rgba(31, 75, 122, 0.96)), url('{% static 'booking/images/hotel.png' %}');">
+    <div class="hero-content">
+        <span class="badge btn-gold rounded-pill px-3 py-2 mb-2"><i class="bi bi-shield-lock-fill me-1"></i>Owner Control Deck</span>
+        <h2 class="fw-bold gold-text mb-1" style="font-family:Georgia,serif;">GaneSha Restaurant Management</h2>
+        <p class="mb-0 text-white-50">{% if lang == 'de' %}Live-Bestellungen, Speisekarte, Kunden und Umsatzverwaltung{% else %}Live orders, menu, customers and revenue control{% endif %}</p>
+    </div>
+    <!-- 🔥 CACHE BUSTING TAG APPENDED HERE (?v=3) 🔥 -->
+    <img src="{% static 'booking/images/logo.png' %}?v=3" class="owner-hero-logo" alt="Ganesha Logo">
+</div>
+
+<div class="row g-4 mb-4" id="stats-refresh-zone">
+    <div class="col-md-4"><a href="{% url 'owner_todays_orders' %}" class="text-decoration-none"><div class="card p-4 border-0 border-start border-success border-5 shadow-lg h-100 dashboard-clickable-card"><div class="d-flex justify-content-between align-items-start"><div><small class="text-uppercase fw-bold text-muted">{% if lang == 'de' %}Heutiger Umsatz{% else %}Today Revenue{% endif %}</small><h2 class="fw-bold text-success mt-2 mb-1">&euro;{{ todays_revenue }}</h2><small class="text-muted">{% if lang == 'de' %}{{ todays_count }} Bestellungen heute bearbeitet{% else %}{{ todays_count }} orders processed today{% endif %}</small></div><div class="stat-icon"><i class="bi bi-cash-coin"></i></div></div></div></a></div>
+    <div class="col-md-4"><a href="{% url 'owner_order_history' %}" class="text-decoration-none"><div class="card p-4 border-0 border-start gold-border border-5 shadow-lg h-100 dashboard-clickable-card"><div class="d-flex justify-content-between align-items-start"><div><small class="text-uppercase fw-bold text-muted">{% if lang == 'de' %}Gesamtumsatz{% else %}Grand Total Sales{% endif %}</small><h2 class="fw-bold gold-text mt-2 mb-1">&euro;{{ grand_total_revenue }}</h2><small class="text-muted">{% if lang == 'de' %}Lebenslanges Verkaufsarchiv{% else %}Lifetime sales archive{% endif %}</small></div><div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div></div></div></a></div>
+    <div class="col-md-4"><a href="{% url 'owner_user_details' %}" class="text-decoration-none"><div class="card p-4 border-0 border-start border-primary border-5 shadow-lg h-100 dashboard-clickable-card"><div class="d-flex justify-content-between align-items-start"><div><small class="text-uppercase fw-bold text-muted">{% if lang == 'de' %}G&auml;ste Insgesamt{% else %}Total Guests{% endif %}</small><h2 class="fw-bold blue-text mt-2 mb-1">{{ users.count }}</h2><small class="text-muted">{% if lang == 'de' %}Kunden-Datenbank Ledger{% else %}Customer database ledger{% endif %}</small></div><div class="stat-icon"><i class="bi bi-people-fill"></i></div></div></div></a></div>
+</div>
+
+<div class="card border-0 shadow-lg rounded-5 mb-4">
+    <div class="card-body p-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <ul class="nav nav-pills gap-2" id="dashboardTabs" role="tablist">
+                <li class="nav-item"><button class="nav-link active fw-bold rounded-pill px-4" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders-pane" type="button"><i class="bi bi-inbox-fill me-1"></i>{% if lang == 'de' %}Bestellungen{% else %}Orders{% endif %}</button></li>
+                <li class="nav-item"><button class="nav-link fw-bold rounded-pill px-4" id="menus-tab" data-bs-toggle="tab" data-bs-target="#menus-pane" type="button"><i class="bi bi-basket2-fill me-1"></i>{% if lang == 'de' %}Men&uuml;karte{% else %}Menu{% endif %}</button></li>
+                <li class="nav-item"><button class="nav-link fw-bold rounded-pill px-4" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-pane" type="button"><i class="bi bi-folder-fill me-1"></i>{% if lang == 'de' %}Kategorien{% else %}Categories{% endif %}</button></li>
+                <li class="nav-item"><button class="nav-link fw-bold rounded-pill px-4" id="coupons-tab" data-bs-toggle="tab" data-bs-target="#coupons-pane" type="button"><i class="bi bi-ticket-perforated-fill me-1"></i>{% if lang == 'de' %}Gutscheine{% else %}Coupons{% endif %}</button></li>
+                <li class="nav-item"><button class="nav-link fw-bold rounded-pill px-4" id="promos-tab" data-bs-toggle="tab" data-bs-target="#promos-pane" type="button"><i class="bi bi-megaphone-fill me-1"></i>{% if lang == 'de' %}Werbung / Promos{% else %}Promos{% endif %}</button></li>
+                <li class="nav-item"><button class="nav-link fw-bold rounded-pill px-4" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-pane" type="button"><i class="bi bi-people-fill me-1"></i>{% if lang == 'de' %}Kunden{% else %}Customers{% endif %}</button></li>
+            </ul>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-dark rounded-pill fw-semibold px-3" data-bs-toggle="modal" data-bs-target="#addCategoryModal" onclick="openAddCategoryModal()"><i class="bi bi-plus-circle me-1"></i>{% if lang == 'de' %}Kategorie{% else %}Category{% endif %}</button>
+                <button class="btn btn-sm btn-outline-dark rounded-pill fw-semibold px-3" data-bs-toggle="modal" data-bs-target="#addCouponModal"><i class="bi bi-plus-circle me-1"></i>{% if lang == 'de' %}Gutschein{% else %}Voucher{% endif %}</button>
+                <button class="btn btn-sm btn-blue rounded-pill fw-bold px-3" data-bs-toggle="modal" data-bs-target="#dishModal" onclick="openAddDishModal()"><i class="bi bi-plus-circle-fill me-1"></i>{% if lang == 'de' %}Gericht erstellen{% else %}Create Dish{% endif %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert bg-primary bg-opacity-10 border border-primary rounded-4 p-3 shadow-sm mb-4 text-center" id="posUnlockBanner">
+    <h6 class="fw-bold blue-text mb-2"><i class="bi bi-volume-up-fill me-1"></i> System-Audio & Display gesperrt</h6>
+    <p class="small text-muted mb-3">Klicken Sie auf die Schaltfl&auml;che unten, um Audio-Benachrichtigungen zu aktivieren. <b>Dies muss nur einmal gemacht werden!</b></p>
+    <button id="unlockSystemBtn" class="btn btn-primary rounded-pill fw-bold px-4 shadow-sm">
+        <i class="bi bi-play-circle-fill me-2"></i>POS-Modus Aktivieren
+    </button>
+</div>
+
+<div class="tab-content" id="dashboardTabsContent">
+    
+    <!-- 🛒 TAB 1: ORDERS -->
+    <div class="tab-pane fade show active" id="orders-pane" role="tabpanel">
+        <div class="card border-0 shadow-lg rounded-5 bg-white">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold blue-text m-0">{% if lang == 'de' %}Live-Bestellungssteuerung{% else %}Live Orders Control{% endif %}</h5>
+                    <small class="text-muted fw-semibold d-none d-lg-block"><i class="bi bi-info-circle-fill gold-text"></i> {% if lang == 'de' %}Doppelklick auf Zeile f&uuml;r Artikeldetails{% else %}Double click row to view breakdown{% endif %}</small>
+                </div>
+                
+                <div class="table-responsive d-none d-lg-block" id="orders-desktop-refresh-zone">
+                    <table class="table table-hover align-middle">
+                        <thead class="small text-uppercase">
+                            <tr>
+                                <th>{% if lang == 'de' %}Bestellung{% else %}Order{% endif %}</th>
+                                <th>{% if lang == 'de' %}Kunde & Zeit{% else %}Customer{% endif %}</th>
+                                <th>{% if lang == 'de' %}Details{% else %}Details{% endif %}</th>
+                                <th>Total</th>
+                                <th style="width: 200px;">{% if lang == 'de' %}Logistik{% else %}Logistics{% endif %}</th>
+                                <th>{% if lang == 'de' %}Beleg{% else %}Invoice{% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr class="order-parent-row border-start border-4 {% if order.status == 'PLACED' %}placed-order-row gold-border{% else %}border-transparent{% endif %}" data-target-collapse="#details-{{ order.id }}" style="cursor:pointer;user-select:none;">
+                                <td><b>#{{ order.id }}</b> <i class="bi bi-chevron-down text-muted small ms-1"></i></td>
+                                
+                                <td>
+                                    <span class="fw-bold d-block">{{ order.user.first_name }} {{ order.user.last_name }}</span>
+                                    <small class="text-muted"><i class="bi bi-telephone-fill gold-text me-1"></i>{{ order.phone_number }}</small><br>
+                                    <span class="badge bg-light border text-dark mt-1"><i class="bi bi-clock me-1"></i>{{ order.created_at|time:"H:i" }} Uhr</span>
+                                </td>
+                                
+                                <td>
+                                    <span class="badge bg-dark rounded-pill mb-1 d-block">{{ order.get_order_type_display }}</span>
+                                    <span class="badge bg-secondary rounded-pill d-block">{{ order.get_payment_method_display }}</span>
+                                </td>
+                                
+                                <td class="gold-text fw-bold fs-6">&euro;{{ order.final_amount }}</td>
+                                
+                                <td class="logistics-cell">
+                                    <form method="POST" action="{% url 'update_order_logistics' order.id %}" class="m-0 p-0">
+                                        {% csrf_token %}
+                                        <div class="d-flex flex-column gap-1">
+                                            <select name="status" class="form-select form-select-sm rounded-pill font-monospace" style="font-size: 0.75rem;">
+                                                <option value="PLACED" {% if order.status == 'PLACED' %}selected{% endif %}>Eingegangen (Received)</option>
+                                                <option value="PREPARING" {% if order.status == 'PREPARING' %}selected{% endif %}>K&uuml;che (Kitchen)</option>
+                                                <option value="OUT_FOR_DELIVERY" {% if order.status == 'OUT_FOR_DELIVERY' %}selected{% endif %}>Unterwegs (Transit)</option>
+                                                <option value="DELIVERED" {% if order.status == 'DELIVERED' %}selected{% endif %}>Geliefert (Complete)</option>
+                                                <option value="CANCELLED" {% if order.status == 'CANCELLED' %}selected{% endif %}>Storniert (Cancelled)</option>
+                                            </select>
+                                            
+                                            <select name="estimated_time" class="form-select form-select-sm rounded-pill font-monospace" style="font-size: 0.75rem;">
+                                                <option value="55 Mins" {% if order.estimated_time == "55 Mins" or not order.estimated_time %}selected{% endif %}>55 Min</option>
+                                                <option value="40-45 Mins" {% if order.estimated_time == "40-45 Mins" %}selected{% endif %}>40-45 Min</option>
+                                                <option value="25-30 Mins" {% if order.estimated_time == "25-30 Mins" %}selected{% endif %}>25-30 Min</option>
+                                                <option value="Ready / Bereit" {% if order.estimated_time == "Ready / Bereit" %}selected{% endif %}>Bereit</option>
+                                            </select>
+                                            
+                                            <button type="submit" class="btn btn-sm btn-blue rounded-pill w-100 mt-1" style="font-size: 0.75rem;">Update</button>
+                                        </div>
+                                    </form>
+                                </td>
+                                
+                                <td>
+                                    <a href="{% url 'view_bill' order.id %}" class="btn btn-shortcut-bill btn-outline-dark btn-sm rounded-pill w-100" target="_blank">
+                                        <i class="bi bi-receipt-cutoff"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr class="collapse-detail-row d-none" id="details-{{ order.id }}">
+                                <td colspan="6" class="p-3 bg-light">
+                                    <div class="p-3 bg-white rounded-4 border shadow-sm">
+                                        <div class="row g-3">
+                                            <div class="col-md-6 border-end">
+                                                <h6 class="fw-bold blue-text border-bottom pb-2 mb-2"><i class="bi bi-cart-check-fill gold-text me-1"></i>{% if lang == 'de' %}Bestellte Artikel Aufstellung{% else %}Ordered Products{% endif %}</h6>
+                                                <table class="table table-sm table-borderless m-0">
+                                                    <thead class="text-secondary small border-bottom"><tr><th>{% if lang == 'de' %}Gericht{% else %}Dish{% endif %}</th><th class="text-center">{% if lang == 'de' %}Menge{% else %}Qty{% endif %}</th><th class="text-end">{% if lang == 'de' %}Einzelpreis{% else %}Unit{% endif %}</th><th class="text-end">Gesamt</th></tr></thead>
+                                                    <tbody>
+                                                        {% for item in order.items.all %}
+                                                        <tr class="small"><td class="fw-bold text-dark">{{ item.food_item_name }}</td><td class="text-center fw-bold text-muted">x{{ item.quantity }}</td><td class="text-end text-secondary">&euro;{{ item.unit_price }}</td><td class="text-end fw-bold text-dark">&euro;{{ item.total_price }}</td></tr>
+                                                        {% endfor %}
+                                                        <tr class="border-top small"><td colspan="3" class="text-end text-muted">{% if lang == 'de' %}Zwischensumme{% else %}Subtotal{% endif %}:</td><td class="text-end text-dark font-monospace">&euro;{{ order.subtotal }}</td></tr>
+                                                        <tr class="small"><td colspan="3" class="text-end text-muted">MwSt:</td><td class="text-end text-dark font-monospace">&euro;{{ order.gst_amount }}</td></tr>
+                                                        <tr class="border-top fw-bold fs-6"><td colspan="3" class="text-end gold-text">{% if lang == 'de' %}Gesamtsumme{% else %}Total Amount{% endif %}:</td><td class="text-end gold-text font-monospace">&euro;{{ order.final_amount }}</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold blue-text border-bottom pb-2 mb-2"><i class="bi bi-geo-alt-fill gold-text me-1"></i>{% if lang == 'de' %}Kunden Metadaten-Log{% else %}Customer Metadata{% endif %}</h6>
+                                                <div class="small">
+                                                    <p class="mb-1"><strong>Name:</strong> {{ order.user.first_name }} {{ order.user.last_name }} (ID: @{{ order.user.username }})</p>
+                                                    <p class="mb-1"><strong>Email:</strong> {{ order.user.email|default:"None Registered" }}</p>
+                                                    <p class="mb-1"><strong>{% if lang == 'de' %}Lieferadresse{% else %}Address{% endif %}:</strong> <span class="text-secondary font-monospace">{{ order.delivery_address }}</span></p>
+                                                    <p class="mb-1"><strong>{% if lang == 'de' %}Zahlungsart{% else %}Payment{% endif %}:</strong> <span class="badge bg-secondary-subtle text-secondary border">{{ order.get_payment_method_display }}</span></p>
+                                                    <p class="mb-0"><strong>Mode:</strong> <span class="badge bg-dark">{{ order.get_order_type_display }}</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-5 text-muted">{% if lang == 'de' %}Keine aktiven Transaktionen in der Live-Warteschlange gefunden.{% else %}No active live transactions currently inside the operating queue dashboard.{% endif %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-lg-none" id="orders-mobile-refresh-zone">
+                    {% for order in orders %}
+                    <div class="card shadow-sm border-0 rounded-4 mb-3 border-start border-4 {% if order.status == 'PLACED' %}placed-order-row gold-border{% else %}border-transparent{% endif %}">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+                                <div>
+                                    <h6 class="fw-bold mb-0">#{{ order.id }}</h6>
+                                    <small class="text-muted">{{ order.created_at|date:"d.m.Y" }} | {{ order.created_at|time:"H:i" }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-dark rounded-pill mb-1">{{ order.get_order_type_display }}</span><br>
+                                    <span class="gold-text fw-bold">&euro;{{ order.final_amount }}</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <span class="fw-bold d-block">{{ order.user.first_name }} {{ order.user.last_name }}</span>
+                                <small class="text-muted"><i class="bi bi-telephone-fill gold-text me-1"></i>{{ order.phone_number }}</small><br>
+                                <span class="badge bg-secondary rounded-pill mt-1" style="font-size: 0.65rem;">{{ order.get_payment_method_display }}</span>
+                            </div>
+
+                            <div class="bg-light rounded-3 p-2 mb-2 border">
+                                <form method="POST" action="{% url 'update_order_logistics' order.id %}" class="m-0 p-0">
+                                    {% csrf_token %}
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <select name="estimated_time" class="form-select form-select-sm rounded-pill" style="font-size: 0.75rem;">
+                                                <option value="55 Mins" {% if order.estimated_time == "55 Mins" or not order.estimated_time %}selected{% endif %}>55 Min</option>
+                                                <option value="40-45 Mins" {% if order.estimated_time == "40-45 Mins" %}selected{% endif %}>40-45 Min</option>
+                                                <option value="25-30 Mins" {% if order.estimated_time == "25-30 Mins" %}selected{% endif %}>25-30 Min</option>
+                                                <option value="Ready / Bereit" {% if order.estimated_time == "Ready / Bereit" %}selected{% endif %}>Bereit</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6">
+                                            <select name="status" class="form-select form-select-sm rounded-pill" style="font-size: 0.75rem;">
+                                                <option value="PLACED" {% if order.status == 'PLACED' %}selected{% endif %}>Eingegangen</option>
+                                                <option value="PREPARING" {% if order.status == 'PREPARING' %}selected{% endif %}>K&uuml;che</option>
+                                                <option value="OUT_FOR_DELIVERY" {% if order.status == 'OUT_FOR_DELIVERY' %}selected{% endif %}>Unterwegs</option>
+                                                <option value="DELIVERED" {% if order.status == 'DELIVERED' %}selected{% endif %}>Geliefert</option>
+                                                <option value="CANCELLED" {% if order.status == 'CANCELLED' %}selected{% endif %}>Storniert</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-sm btn-blue w-100 rounded-pill fw-bold">Update</button>
+                                </form>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary rounded-pill w-50" type="button" data-bs-toggle="collapse" data-bs-target="#mob-details-{{ order.id }}">
+                                    <i class="bi bi-list-ul me-1"></i> Details
+                                </button>
+                                <a href="{% url 'view_bill' order.id %}" class="btn btn-outline-dark btn-sm rounded-pill w-50" target="_blank">
+                                    <i class="bi bi-receipt-cutoff me-1"></i> Bill
+                                </a>
+                            </div>
+
+                            <div class="collapse mt-2" id="mob-details-{{ order.id }}">
+                                <div class="bg-white border rounded-3 p-2 small">
+                                    <table class="table table-sm table-borderless mb-0">
+                                        {% for item in order.items.all %}
+                                        <tr>
+                                            <td>{{ item.food_item_name }}</td>
+                                            <td class="text-center">x{{ item.quantity }}</td>
+                                            <td class="text-end">&euro;{{ item.total_price }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                        <tr class="border-top fw-bold">
+                                            <td colspan="2">Total</td>
+                                            <td class="text-end gold-text">&euro;{{ order.final_amount }}</td>
+                                        </tr>
+                                    </table>
+                                    <hr class="my-1">
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        <i class="bi bi-geo-alt-fill"></i> {{ order.delivery_address|default:"N/A" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                        <div class="text-center py-5 text-muted">{% if lang == 'de' %}Keine Bestellungen.{% else %}No orders.{% endif %}</div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <!-- 🍕 TAB 2: MENU CONFIGURATION (DUAL LAYOUT FOR RESPONSIVENESS) -->
+    <div class="tab-pane fade" id="menus-pane" role="tabpanel">
+        <div class="card border-0 shadow-lg rounded-5 bg-white">
+            <div class="card-body p-4">
+                <h5 class="fw-bold blue-text mb-3">{% if lang == 'de' %}Aktive Speisekarten-Konfiguration{% else %}Active Menu Configurations{% endif %}</h5>
+                
+                <!-- Desktop Table -->
+                <div class="table-responsive d-none d-lg-block">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th><i class="bi bi-image"></i></th>
+                                <th>Name (DE / EN)</th>
+                                <th>{% if lang == 'de' %}Kategorie{% else %}Category{% endif %}</th>
+                                <th>{% if lang == 'de' %}Eigenschaften{% else %}Details{% endif %}</th>
+                                <th>{% if lang == 'de' %}Preis{% else %}Price{% endif %}</th>
+                                <th class="text-end">{% if lang == 'de' %}Aktionen{% else %}Actions{% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in menu_items %}
+                            <tr>
+                                <td>{% if item.image %}<img src="{{ item.image.url }}" class="menu-thumb" style="width: 45px; height: 35px;">{% else %}<span class="text-muted small">No Photo</span>{% endif %}</td>
+                                <td>
+                                    <b>{{ item.name_de }}</b><br>
+                                    <small class="text-muted">{{ item.name_en }}</small>
+                                </td>
+                                <td><span class="badge bg-light text-dark border rounded-pill">{{ item.category.name_de }}</span></td>
+                                <td>
+                                    <div class="d-flex flex-column gap-1 align-items-start">
+                                        {% if item.item_type == 'BEVERAGE' %}
+                                            <span class="badge bg-info-subtle text-info border rounded-pill" style="font-size:0.65rem;">{% if lang == 'de' %}Getr&auml;nk (19%){% else %}Drink (19%){% endif %}</span>
+                                        {% else %}
+                                            <span class="badge bg-success-subtle text-success border rounded-pill" style="font-size:0.65rem;">{% if lang == 'de' %}Speise (7%){% else %}Food (7%){% endif %}</span>
+                                        {% endif %}
+                                        
+                                        {% if item.diet_type == 'VEG' %}
+                                            <span class="badge bg-success rounded-pill" style="font-size:0.65rem;">Veg</span>
+                                        {% else %}
+                                            <span class="badge bg-danger rounded-pill" style="font-size:0.65rem;">Non-Veg</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="fw-bold gold-text">&euro;{{ item.price }}</td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1 justify-content-end">
+                                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 edit-dish-btn" title="Edit" data-id="{{ item.id }}" data-name-en="{{ item.name_en }}" data-name-de="{{ item.name_de }}" data-category-id="{{ item.category.id }}" data-price="{{ item.price }}" data-diet-type="{{ item.diet_type }}" data-item-type="{{ item.item_type }}" data-desc-en="{{ item.description_en }}" data-desc-de="{{ item.description_de }}"><i class="bi bi-pencil-square" style="pointer-events: none;"></i></button>
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-2 delete-dish-btn" title="Delete" data-id="{{ item.id }}" data-name="{% if lang == 'de' %}{{ item.name_de }}{% else %}{{ item.name_en }}{% endif %}"><i class="bi bi-trash" style="pointer-events: none;"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Cards for Menus -->
+                <div class="d-lg-none">
+                    {% for item in menu_items %}
+                    <div class="card shadow-sm border-0 rounded-4 mb-3 border-start border-4 border-secondary">
+                        <div class="card-body p-3">
+                            <div class="d-flex gap-3 align-items-center mb-3">
+                                {% if item.image %}<img src="{{ item.image.url }}" class="rounded-3 shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">{% else %}<div class="bg-light rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px;"><i class="bi bi-image text-muted"></i></div>{% endif %}
+                                <div>
+                                    <h6 class="fw-bold mb-0 blue-text">{{ item.name_de }}</h6>
+                                    <small class="text-muted">{{ item.name_en }}</small>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 mb-3">
+                                <span class="badge bg-light text-dark border rounded-pill">{{ item.category.name_de }}</span>
+                                {% if item.item_type == 'BEVERAGE' %}<span class="badge bg-info-subtle text-info border rounded-pill">Drink (19%)</span>{% else %}<span class="badge bg-success-subtle text-success border rounded-pill">Food (7%)</span>{% endif %}
+                                {% if item.diet_type == 'VEG' %}<span class="badge bg-success rounded-pill">Veg</span>{% else %}<span class="badge bg-danger rounded-pill">Non-Veg</span>{% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                                <span class="fw-bold gold-text fs-5">&euro;{{ item.price }}</span>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 edit-dish-btn" data-id="{{ item.id }}" data-name-en="{{ item.name_en }}" data-name-de="{{ item.name_de }}" data-category-id="{{ item.category.id }}" data-price="{{ item.price }}" data-diet-type="{{ item.diet_type }}" data-item-type="{{ item.item_type }}" data-desc-en="{{ item.description_en }}" data-desc-de="{{ item.description_de }}">Edit</button>
+                                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 delete-dish-btn" data-id="{{ item.id }}" data-name="{% if lang == 'de' %}{{ item.name_de }}{% else %}{{ item.name_en }}{% endif %}">Del</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 📁 TAB 3: CATEGORIES (DUAL LAYOUT) -->
+    <div class="tab-pane fade" id="categories-pane" role="tabpanel">
+        <div class="card border-0 shadow-lg rounded-5 bg-white">
+            <div class="card-body p-4">
+                <h5 class="fw-bold blue-text mb-3">{% if lang == 'de' %}Men&uuml;-Kategorien verwalten{% else %}Manage Menu Categories{% endif %}</h5>
+                
+                <!-- Desktop Table -->
+                <div class="table-responsive d-none d-lg-block">
+                    <table class="table table-hover align-middle">
+                        <thead><tr><th>ID</th><th>Name (DE / EN)</th><th class="text-end">{% if lang == 'de' %}Aktionen{% else %}Actions{% endif %}</th></tr></thead>
+                        <tbody>
+                            {% for cat in categories %}
+                            <tr>
+                                <td><b>#{{ cat.id }}</b></td>
+                                <td>
+                                    <b>{{ cat.name_de }}</b><br>
+                                    <small class="text-muted">{{ cat.name_en }}</small>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1 justify-content-end">
+                                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 edit-cat-btn" title="Edit" data-id="{{ cat.id }}" data-name-de="{{ cat.name_de }}" data-name-en="{{ cat.name_en }}"><i class="bi bi-pencil-square" style="pointer-events: none;"></i></button>
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-2 delete-cat-btn" title="Delete" data-id="{{ cat.id }}" data-name="{% if lang == 'de' %}{{ cat.name_de }}{% else %}{{ cat.name_en }}{% endif %}"><i class="bi bi-trash" style="pointer-events: none;"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Cards -->
+                <div class="d-lg-none">
+                    {% for cat in categories %}
+                    <div class="card shadow-sm border-0 rounded-4 mb-3 border-start border-4 border-info">
+                        <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-dark rounded-pill mb-1">ID: #{{ cat.id }}</span>
+                                <h6 class="fw-bold mb-0 blue-text">{{ cat.name_de }}</h6>
+                                <small class="text-muted">{{ cat.name_en }}</small>
+                            </div>
+                            <div class="d-flex flex-column gap-2">
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 edit-cat-btn" data-id="{{ cat.id }}" data-name-de="{{ cat.name_de }}" data-name-en="{{ cat.name_en }}">Edit</button>
+                                <button class="btn btn-outline-danger btn-sm rounded-pill px-3 delete-cat-btn" data-id="{{ cat.id }}" data-name="{% if lang == 'de' %}{{ cat.name_de }}{% else %}{{ cat.name_en }}{% endif %}">Del</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎟️ TAB 4: COUPONS (DUAL LAYOUT) -->
+    <div class="tab-pane fade" id="coupons-pane" role="tabpanel">
+        <div class="card border-0 shadow-lg rounded-5 bg-white">
+            <div class="card-body p-4">
+                <h5 class="fw-bold blue-text mb-3">{% if lang == 'de' %}Ausgegebene Rabattgutscheine{% else %}Issued Discount Vouchers{% endif %}</h5>
+                
+                <!-- Desktop Table -->
+                <div class="table-responsive d-none d-lg-block">
+                    <table class="table table-hover align-middle">
+                        <thead><tr><th>Code</th><th>{% if lang == 'de' %}Rabatt{% else %}Discount{% endif %}</th><th>{% if lang == 'de' %}Mindestwert{% else %}Min Spend{% endif %}</th><th>{% if lang == 'de' %}Beschr&auml;nkung{% else %}Scope Restriction{% endif %}</th><th class="text-end">{% if lang == 'de' %}Aktionen{% else %}Actions{% endif %}</th></tr></thead>
+                        <tbody>
+                            {% for coupon in all_coupons %}
+                            <tr>
+                                <td><span class="font-monospace fw-bold blue-text bg-warning bg-opacity-25 rounded px-2 py-1 border gold-border">{{ coupon.code }}</span></td>
+                                <td class="fw-bold text-dark">{{ coupon.discount_percentage }}%</td>
+                                <td>&euro;{{ coupon.min_order_amount }}</td>
+                                <td>{% if coupon.applicable_category %}<span class="badge bg-light text-dark border rounded-pill">{{ coupon.applicable_category.name_en }} / {{ coupon.applicable_category.name_de }} Only</span>{% else %}<span class="badge bg-light text-secondary border rounded-pill">Site-Wide / Global</span>{% endif %}</td>
+                                <td class="text-end">
+                                    <button class="btn btn-outline-danger btn-sm rounded-pill px-2 delete-coupon-btn" title="Delete" data-id="{{ coupon.id }}" data-code="{{ coupon.code }}"><i class="bi bi-trash-fill" style="pointer-events: none;"></i></button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center py-4 text-muted">{% if lang == 'de' %}Keine Rabattcodes im System registriert.{% else %}No vouchers currently generated inside database schemas.{% endif %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Cards -->
+                <div class="d-lg-none">
+                    {% for coupon in all_coupons %}
+                    <div class="card shadow-sm border-0 rounded-4 mb-3 border-start border-4 border-warning">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="font-monospace fw-bold blue-text bg-warning bg-opacity-25 rounded px-2 py-1 border gold-border">{{ coupon.code }}</span>
+                                <button class="btn btn-outline-danger btn-sm rounded-pill px-3 py-0 delete-coupon-btn" data-id="{{ coupon.id }}" data-code="{{ coupon.code }}">Del</button>
+                            </div>
+                            <div class="row g-2 small">
+                                <div class="col-6"><b>Discount:</b> <span class="text-danger fw-bold">{{ coupon.discount_percentage }}%</span></div>
+                                <div class="col-6"><b>Min Spend:</b> &euro;{{ coupon.min_order_amount }}</div>
+                                <div class="col-12 mt-1">
+                                    <b>Scope:</b> 
+                                    {% if coupon.applicable_category %}
+                                        <span class="badge bg-light text-dark border rounded-pill">{{ coupon.applicable_category.name_en }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-secondary border rounded-pill">Global</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4 text-muted">{% if lang == 'de' %}Keine Rabattcodes im System registriert.{% else %}No vouchers currently generated inside database schemas.{% endif %}</div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 📢 TAB 5: PROMOS (DUAL LAYOUT) -->
+    <div class="tab-pane fade" id="promos-pane" role="tabpanel">
+        <div class="card border-0 shadow-lg rounded-5 bg-white">
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    
+                    <div class="col-lg-4 border-end pe-lg-4">
+                        <h5 class="fw-bold blue-text mb-3"><i class="bi bi-plus-circle-fill gold-text me-1"></i>{% if lang == 'de' %}Neue Werbung hochladen{% else %}Upload New Promotion{% endif %}</h5>
+                        <p class="small text-muted">{% if lang == 'de' %}Maximal 4 Elemente erlaubt. Wenn Sie ein 5. Element hochladen, wird die &auml;lteste Werbung automatisch gel&ouml;scht.{% else %}Strict 4 items threshold capacity. Uploading a 5th element will automatically purge the oldest entry.{% endif %}</p>
+                        
+                        <form method="POST" enctype="multipart/form-data" action="{% url 'add_modify_menu' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action_type" value="UPLOAD_PROMO">
+                            <input type="hidden" name="promo_id" id="form_promo_id" value="">
+                            
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Medien-Typ w&auml;hlen{% else %}Media Format Option{% endif %}</label>
+                                <select class="form-select form-select-sm rounded-pill mb-2" id="promoMediaTypeSelector" onchange="togglePromoUploadFields()">
+                                    <option value="IMAGE" selected>{% if lang == 'de' %}Bild hochladen{% else %}Static Image Field{% endif %}</option>
+                                    <option value="VIDEO">{% if lang == 'de' %}Video hochladen (MP4){% else %}Pure Audio/Video Box (MP4){% endif %}</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3" id="promoImageWrapper">
+                                <label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Werbebild ausw&auml;hlen{% else %}Select Promo Image{% endif %}</label>
+                                <input type="file" name="promo_image" accept="image/*" class="form-control form-control-sm rounded-pill">
+                            </div>
+
+                            <div class="mb-3 d-none" id="promoVideoWrapper">
+                                <label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Werbevideo ausw&auml;hlen (MP4){% else %}Select Promo Video (MP4){% endif %}</label>
+                                <input type="file" name="promo_video" accept="video/mp4" class="form-control form-control-sm rounded-pill">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted">Written Notes (English)</label>
+                                <textarea name="notes_en" id="form_promo_notes_en" class="form-control rounded-4 small" rows="2" placeholder="e.g. Try our new special Mango Lassi today!"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted">Ank&uuml;ndigungstext (Deutsch)</label>
+                                <textarea name="notes_de" id="form_promo_notes_de" class="form-control rounded-4 small" rows="2" placeholder="z.B. Probieren Sie heute unser neues Mango Lassi!"></textarea>
+                            </div>
+
+                            <button type="submit" id="form_promo_submit_btn" class="btn btn-blue w-100 rounded-pill fw-bold text-uppercase py-2 shadow-sm">
+                                <i class="bi bi-cloud-arrow-up-fill me-1"></i>{% if lang == 'de' %}Promo ver&ouml;ffentlichen{% else %}Publish Promo Slide{% endif %}
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="col-lg-8">
+                        <h5 class="fw-bold blue-text mb-3">{% if lang == 'de' %}Aktive Live-Werbeanzeigen (Max. 4){% else %}Active Live Promotions (Max 4){% endif %}</h5>
+                        
+                        <!-- Desktop Table -->
+                        <div class="table-responsive d-none d-lg-block">
+                            <table class="table table-hover align-middle">
+                                <thead class="small text-uppercase"><tr><th>{% if lang == 'de' %}Medien Vorschau{% else %}Media View{% endif %}</th><th>Notizen (DE / EN)</th><th class="text-end">{% if lang == 'de' %}Aktionen{% else %}Actions{% endif %}</th></tr></thead>
+                                <tbody>
+                                    {% for promo in promos %}
+                                    <tr>
+                                        <td>
+                                            {% if promo.video %}
+                                                <span class="badge bg-info text-dark font-monospace small"><i class="bi bi-play-btn-fill me-1"></i>[MP4 Video]</span>
+                                            {% elif promo.image %}
+                                                <img src="{{ promo.image.url }}" class="menu-thumb" style="width:60px; height:45px; object-fit:cover;">
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-wrap small" style="max-width: 200px;">
+                                            <b>{{ promo.notes_de|default:"-" }}</b><br>
+                                            <span class="text-muted">{{ promo.notes_en|default:"-" }}</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-inline-flex gap-1 justify-content-end">
+                                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-2 edit-promo-btn" title="Edit" data-id="{{ promo.id }}" data-notes-en="{{ promo.notes_en|default:'' }}" data-notes-de="{{ promo.notes_de|default:'' }}">
+                                                    <i class="bi bi-pencil-square" style="pointer-events: none;"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm rounded-pill px-2 delete-promo-btn" title="Delete" data-id="{{ promo.id }}">
+                                                    <i class="bi bi-trash" style="pointer-events: none;"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="3" class="text-center py-4 text-muted small">{% if lang == 'de' %}Keine Werbebanner auf der Startseite aktiv.{% else %}No promotional banners active on the landing terminal screen.{% endif %}</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Cards -->
+                        <div class="d-lg-none">
+                            {% for promo in promos %}
+                            <div class="card shadow-sm border-0 rounded-4 mb-3 border-start border-4 border-dark">
+                                <div class="card-body p-3">
+                                    <div class="d-flex gap-3 align-items-center mb-3">
+                                        {% if promo.video %}
+                                            <div class="bg-info rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px;"><i class="bi bi-play-btn-fill text-dark fs-3"></i></div>
+                                        {% elif promo.image %}
+                                            <img src="{{ promo.image.url }}" class="rounded-3 shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% endif %}
+                                        
+                                        <div>
+                                            <h6 class="fw-bold mb-0 blue-text text-truncate" style="max-width: 200px;">{{ promo.notes_de|default:"No German Text" }}</h6>
+                                            <small class="text-muted text-truncate d-block" style="max-width: 200px;">{{ promo.notes_en|default:"No English Text" }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end gap-2 border-top pt-2">
+                                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 edit-promo-btn" data-id="{{ promo.id }}" data-notes-en="{{ promo.notes_en|default:'' }}" data-notes-de="{{ promo.notes_de|default:'' }}">Edit</button>
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-4 delete-promo-btn" data-id="{{ promo.id }}">Del</button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-4 text-muted small">{% if lang == 'de' %}Keine Werbebanner auf der Startseite aktiv.{% else %}No promotional banners active on the landing terminal screen.{% endif %}</div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 👤 TAB 6: USERS (DUAL LAYOUT) -->
+    <div class="tab-pane fade" id="users-pane" role="tabpanel">
+        <div class="card border-0 shadow-lg rounded-5 bg-white">
+            <div class="card-body p-4">
+                <h5 class="fw-bold blue-text mb-3">{% if lang == 'de' %}Registrierte Kunden-Datenbank{% else %}Registered Customer Database{% endif %}</h5>
+                
+                <!-- Desktop Table -->
+                <div class="table-responsive d-none d-lg-block">
+                    <table class="table table-hover align-middle">
+                        <thead><tr><th>{% if lang == 'de' %}Vollst&auml;ndiger Name{% else %}Full Name{% endif %}</th><th>{% if lang == 'de' %}Login-Kennung (Tel.){% else %}Login Identifier (Phone){% endif %}</th><th>{% if lang == 'de' %}Hinterlegte Standardadresse{% else %}Registered Address{% endif %}</th></tr></thead>
+                        <tbody>{% for profile in users %}<tr><td><b>{{ profile.user.first_name }} {{ profile.user.last_name }}</b></td><td><span class="badge bg-dark rounded-pill px-3">{{ profile.phone_number }}</span></td><td><small class="text-muted">{{ profile.address }}</small></td></tr>{% endfor %}</tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Cards -->
+                <div class="d-lg-none">
+                    {% for profile in users %}
+                    <div class="card shadow-sm border-0 rounded-4 mb-3 border-start border-4 border-success">
+                        <div class="card-body p-3">
+                            <h6 class="fw-bold mb-1 blue-text">{{ profile.user.first_name }} {{ profile.user.last_name }}</h6>
+                            <span class="badge bg-dark rounded-pill mb-2"><i class="bi bi-telephone-fill me-1"></i>{{ profile.phone_number }}</span>
+                            <div class="text-muted small mt-1 border-top pt-2">
+                                <i class="bi bi-geo-alt-fill text-warning me-1"></i>{{ profile.address|default:"No Address Provided" }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALS (UNCHANGED) -->
+<div class="modal fade" id="dishModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-5 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0"><h5 class="fw-bold blue-text" id="dishModalTitle">{% if lang == 'de' %}Gericht Konfigurieren{% else %}Create Menu Dish{% endif %}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form id="dishForm" method="POST" enctype="multipart/form-data" action="{% url 'add_modify_menu' %}">
+                {% csrf_token %}
+                <div class="modal-body py-3">
+                    <div class="row g-2">
+                        <div class="col-6"><label class="form-label small fw-semibold text-muted">Name (EN)</label><input type="text" name="name_en" id="form_name_en" class="form-control form-control-sm rounded-pill" required></div>
+                        <div class="col-6"><label class="form-label small fw-semibold text-muted">Name (DE)</label><input type="text" name="name_de" id="form_name_de" class="form-control form-control-sm rounded-pill" required></div>
+                        <div class="col-12"><label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Kategorie{% else %}Category{% endif %}</label><select name="category" id="form_category" class="form-select form-select-sm rounded-pill">{% for cat in categories %}<option value="{{ cat.id }}">{{ cat.name_en }} / {{ cat.name_de }}</option>{% endfor %}</select></div>
+                        <div class="col-4"><label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Preis{% else %}Price{% endif %} (&euro;)</label><input type="number" step="0.01" name="price" id="form_price" class="form-control form-control-sm rounded-pill" required></div>
+                        <div class="col-4"><label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Klassifizierung{% else %}Diet{% endif %}</label><select name="diet_type" id="form_diet_type" class="form-select form-select-sm rounded-pill"><option value="VEG">Veg</option><option value="NON_VEG">Non-Veg</option></select></div>
+                        <div class="col-4"><label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}MwSt.{% else %}Tax{% endif %}</label><select name="item_type" id="form_item_type" class="form-select form-select-sm rounded-pill"><option value="FOOD">Food (7%)</option><option value="BEVERAGE">Drink (19%)</option></select></div>
+                        <div class="col-12"><label class="form-label small fw-semibold text-muted">Description (EN)</label><textarea name="description_en" id="form_desc_en" class="form-control form-control-sm rounded-4" rows="1"></textarea></div>
+                        <div class="col-12"><label class="form-label small fw-semibold text-muted">Beschreibung (DE)</label><textarea name="description_de" id="form_desc_de" class="form-control form-control-sm rounded-4" rows="1"></textarea></div>
+                        <div class="col-12"><label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Gerichtsbild hochladen{% else %}Dish Image{% endif %}</label><input type="file" name="image" class="form-control form-control-sm rounded-pill"></div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">{% if lang == 'de' %}Abbrechen{% else %}Abort{% endif %}</button><button type="submit" class="btn btn-sm btn-blue rounded-pill fw-bold px-3">{% if lang == 'de' %}&Auml;nderungen speichern{% else %}Save Changes{% endif %}</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content rounded-5 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0"><h5 class="fw-bold blue-text" id="categoryModalTitle">{% if lang == 'de' %}Kategorie hinzuf&uuml;gen{% else %}Add Menu Category{% endif %}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form id="categoryForm" method="POST" action="{% url 'add_category_frontend' %}">
+                {% csrf_token %}
+                <div class="modal-body py-3">
+                    <div class="mb-2"><label class="form-label small fw-semibold text-muted">Category Name (EN)</label><input type="text" name="name_en" id="form_cat_name_en" class="form-control form-control-sm rounded-pill" required placeholder="e.g. Starters"></div>
+                    <div><label class="form-label small fw-semibold text-muted">Kategorie-Name (DE)</label><input type="text" name="name_de" id="form_cat_name_de" class="form-control form-control-sm rounded-pill" required placeholder="e.g. Vorspeisen"></div>
+                </div>
+                <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-dismiss="modal">{% if lang == 'de' %}Abbrechen{% else %}Cancel{% endif %}</button><button type="submit" class="btn btn-sm btn-blue rounded-pill">{% if lang == 'de' %}Erstellen{% else %}Create{% endif %}</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addCouponModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content rounded-5 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0"><h5 class="fw-bold blue-text">{% if lang == 'de' %}Rabattgutschein ausgeben{% else %}Issue Discount Voucher{% endif %}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form method="POST" action="{% url 'add_coupon_frontend' %}">
+                {% csrf_token %}
+                <div class="modal-body py-3">
+                    <div class="mb-2"><label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Aktionscode{% else %}Promo Code{% endif %}</label><input type="text" name="code" class="form-control form-control-sm rounded-pill text-uppercase" required placeholder="GANESHA10"></div>
+                    <div class="mb-2"><label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Rabattwert{% else %}Discount{% endif %} (%)</label><input type="number" name="discount_percentage" min="1" max="100" class="form-control form-control-sm rounded-pill" required placeholder="10"></div>
+                    <div class="mb-2"><label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}Mindestbestellwert{% else %}Min Order Subtotal{% endif %} (&euro;)</label><input type="number" step="0.01" name="min_order_amount" class="form-control form-control-sm rounded-pill" required value="0.00"></div>
+                    <div><label class="form-label small fw-semibold text-muted">{% if lang == 'de' %}G&uuml;ltig f&uuml;r Warengruppe{% else %}Product Category Limitation{% endif %}</label><select name="applicable_category_id" class="form-select form-select-sm rounded-pill"><option value="">{% if lang == 'de' %}Alle Gerichte (Global){% else %}All Products (Site-Wide){% endif %}</option>{% for cat in categories %}<option value="{{ cat.id }}">{{ cat.name_en }} / {{ cat.name_de }}</option>{% endfor %}</select></div>
+                </div>
+                <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-dismiss="modal">{% if lang == 'de' %}Abbrechen{% else %}Cancel{% endif %}</button><button type="submit" class="btn btn-sm btn-blue rounded-pill">{% if lang == 'de' %}Generieren{% else %}Generate{% endif %}</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// 🚨 AUDIO LOOP & OVERLAY LOGIC 🚨
+let systemActive = localStorage.getItem('pos_mode') === 'enabled';
+let wakeLock = null;
+let isAlarmRinging = false; 
+
+document.addEventListener("DOMContentLoaded", function() {
+    
+    const banner = document.getElementById('posUnlockBanner');
+    if (systemActive && banner) {
+        banner.style.display = 'none';
+    }
+
+    const unlockBtn = document.getElementById('unlockSystemBtn');
+    if (unlockBtn) {
+        unlockBtn.addEventListener('click', async () => {
+            unlockAudio();
+            systemActive = true;
+            localStorage.setItem('pos_mode', 'enabled');
+            if (banner) banner.style.display = 'none';
+            enableWakeLock();
+        });
+    }
+
+    if (systemActive) {
+        document.body.addEventListener('click', function silentUnlock() {
+            unlockAudio();
+            enableWakeLock();
+            document.body.removeEventListener('click', silentUnlock);
+        }, { once: true });
+        
+        document.body.addEventListener('touchstart', function silentUnlockTouch() {
+            unlockAudio();
+            document.body.removeEventListener('touchstart', silentUnlockTouch);
+        }, { once: true });
+    }
+
+    attachRowListeners(); 
+});
+
+function unlockAudio() {
+    const audio = document.getElementById('orderNotificationSound');
+    if (audio) {
+        audio.play().then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+        }).catch(e => console.log("Audio silent unlock pending user interaction."));
+    }
+}
+
+async function enableWakeLock() {
+    try {
+        if ('wakeLock' in navigator && wakeLock === null) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            document.addEventListener('visibilitychange', async () => {
+                if (wakeLock !== null && document.visibilityState === 'visible') {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            });
+        }
+    } catch (err) {
+        console.log(`Wake Lock error: ${err.name}`);
+    }
+}
+
+function attachRowListeners() {
+    const rows = document.querySelectorAll(".order-parent-row");
+    rows.forEach(row => {
+        row.addEventListener("dblclick", function(e){
+            const targetSelector = this.getAttribute("data-target-collapse");
+            const detailRow = document.querySelector(targetSelector);
+            if(detailRow){
+                if(detailRow.classList.contains("d-none")){
+                    detailRow.classList.remove("d-none");
+                    this.querySelector(".bi-chevron-down").style.transform="rotate(180deg)";
+                }else{
+                    detailRow.classList.add("d-none");
+                    this.querySelector(".bi-chevron-down").style.transform="rotate(0deg)";
+                }
+            }
+        });
+        const logisticsZone = row.querySelector(".logistics-cell");
+        if(logisticsZone){
+            logisticsZone.addEventListener("click", function(e){e.stopPropagation();});
+            logisticsZone.addEventListener("dblclick", function(e){e.stopPropagation();});
+        }
+        const billBtn = row.querySelector(".btn-shortcut-bill");
+        if(billBtn){
+            billBtn.addEventListener("click", function(e){e.stopPropagation();});
+            billBtn.addEventListener("dblclick", function(e){e.stopPropagation();});
+        }
+    });
+}
+
+// Admin Modal Logic
+document.addEventListener("click",function(e){
+    if(e.target&&e.target.classList.contains("edit-dish-btn")){
+        const btn=e.target;
+        openEditDishModal(btn.getAttribute("data-id"),btn.getAttribute("data-name-en"),btn.getAttribute("data-name-de"),btn.getAttribute("data-category-id"),btn.getAttribute("data-price"),btn.getAttribute("data-diet-type"),btn.getAttribute("data-item-type"),btn.getAttribute("data-desc-en"),btn.getAttribute("data-desc-de"));
+    }
+    
+    if(e.target&&e.target.classList.contains("edit-promo-btn")){
+        const btn = e.target;
+        document.getElementById("form_promo_id").value = btn.getAttribute("data-id");
+        document.getElementById("form_promo_notes_en").value = btn.getAttribute("data-notes-en");
+        document.getElementById("form_promo_notes_de").value = btn.getAttribute("data-notes-de");
+        document.getElementById("form_promo_submit_btn").innerText = "Update Promo";
+        document.getElementById("promos-pane").scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    if(e.target&&(e.target.classList.contains("delete-promo-btn")||e.target.closest(".delete-promo-btn"))){
+        const btn=e.target.classList.contains("delete-promo-btn")?e.target:e.target.closest(".delete-promo-btn");
+        if(confirm("Löschen / Delete?")){
+            const form=document.createElement('form');
+            form.method='POST'; form.action="{% url 'add_modify_menu' %}";
+            const csrfInput=document.createElement('input'); csrfInput.type='hidden'; csrfInput.name='csrfmiddlewaretoken'; csrfInput.value='{{ csrf_token }}'; form.appendChild(csrfInput);
+            const actionInput=document.createElement('input'); actionInput.type='hidden'; actionInput.name='action_type'; actionInput.value='DELETE_PROMO'; form.appendChild(actionInput);
+            const promoInput=document.createElement('input'); promoInput.type='hidden'; promoInput.name='promo_id'; promoInput.value=btn.getAttribute("data-id"); form.appendChild(promoInput);
+            document.body.appendChild(form); form.submit();
+        }
+    }
+
+    if(e.target&&(e.target.classList.contains("delete-dish-btn")||e.target.closest(".delete-dish-btn"))){
+        const btn=e.target.classList.contains("delete-dish-btn")?e.target:e.target.closest(".delete-dish-btn");
+        if(confirm("Löschen / Delete?")){
+            const form=document.createElement('form'); form.method='POST'; form.action=`/menu/edit/${btn.getAttribute("data-id")}/`;
+            const csrfInput=document.createElement('input'); csrfInput.type='hidden'; csrfInput.name='csrfmiddlewaretoken'; csrfInput.value='{{ csrf_token }}'; form.appendChild(csrfInput);
+            const actionInput=document.createElement('input'); actionInput.type='hidden'; actionInput.name='action_type'; actionInput.value='DELETE'; form.appendChild(actionInput);
+            document.body.appendChild(form); form.submit();
+        }
+    }
+    
+    if(e.target&&(e.target.classList.contains("delete-coupon-btn")||e.target.closest(".delete-coupon-btn"))){
+        const btn=e.target.classList.contains("delete-coupon-btn")?e.target:e.target.closest(".delete-coupon-btn");
+        if(confirm("Löschen / Delete?")){
+            const form=document.createElement('form'); form.method='POST'; form.action="{% url 'add_coupon_frontend' %}";
+            const csrfInput=document.createElement('input'); csrfInput.type='hidden'; csrfInput.name='csrfmiddlewaretoken'; csrfInput.value='{{ csrf_token }}'; form.appendChild(csrfInput);
+            const couponInput=document.createElement('input'); couponInput.type='hidden'; couponInput.name='coupon_id'; couponInput.value=btn.getAttribute("data-id"); form.appendChild(couponInput);
+            const actionInput=document.createElement('input'); actionInput.type='hidden'; actionInput.name='action_type'; actionInput.value='DELETE'; form.appendChild(actionInput);
+            document.body.appendChild(form); form.submit();
+        }
+    }
+    
+    if(e.target&&e.target.classList.contains("edit-cat-btn")){
+        const btn=e.target;
+        document.getElementById('categoryForm').action=`/category/edit/${btn.getAttribute("data-id")}/`;
+        document.getElementById('form_cat_name_en').value=btn.getAttribute("data-name-en");
+        document.getElementById('form_cat_name_de').value=btn.getAttribute("data-name-de");
+        new bootstrap.Modal(document.getElementById('addCategoryModal')).show();
+    }
+    
+    if(e.target&&(e.target.classList.contains("delete-cat-btn")||e.target.closest(".delete-cat-btn"))){
+        const btn=e.target.classList.contains("delete-cat-btn")?e.target:e.target.closest(".delete-cat-btn");
+        if(confirm("Löschen / Delete?")){
+            const form=document.createElement('form'); form.method='POST'; form.action=`/category/edit/${btn.getAttribute("data-id")}/`;
+            const csrfInput=document.createElement('input'); csrfInput.type='hidden'; csrfInput.name='csrfmiddlewaretoken'; csrfInput.value='{{ csrf_token }}'; form.appendChild(csrfInput);
+            const actionInput=document.createElement('input'); actionInput.type='hidden'; actionInput.name='action_type'; actionInput.value='DELETE'; form.appendChild(actionInput);
+            document.body.appendChild(form); form.submit();
+        }
+    }
+});
+
+function togglePromoUploadFields() {
+    var selector = document.getElementById("promoMediaTypeSelector");
+    var imgWrapper = document.getElementById("promoImageWrapper");
+    var vidWrapper = document.getElementById("promoVideoWrapper");
+    if (selector.value === "IMAGE") {
+        imgWrapper.classList.remove("d-none"); vidWrapper.classList.add("d-none"); vidWrapper.querySelector("input").value = "";
+    } else {
+        imgWrapper.classList.add("d-none"); vidWrapper.classList.remove("d-none"); imgWrapper.querySelector("input").value = "";
+    }
+}
+
+function openAddCategoryModal(){
+    document.getElementById('categoryForm').action="{% url 'add_category_frontend' %}";
+    document.getElementById('form_cat_name_en').value=""; document.getElementById('form_cat_name_de').value="";
+}
+
+function openAddDishModal(){
+    document.getElementById('dishForm').action="{% url 'add_modify_menu' %}";
+    document.getElementById('dishForm').reset();
+}
+
+function openEditDishModal(id,nameEn,nameDe,categoryId,price,dietType,itemType,descEn,descDe){
+    document.getElementById('dishForm').action="/menu/edit/"+id+"/";
+    document.getElementById('form_name_en').value=nameEn; document.getElementById('form_name_de').value=nameDe;
+    document.getElementById('form_category').value=categoryId; document.getElementById('form_price').value=price;
+    document.getElementById('form_diet_type').value=dietType; document.getElementById('form_item_type').value=itemType;
+    document.getElementById('form_desc_en').value=descEn; document.getElementById('form_desc_de').value=descDe;
+    new bootstrap.Modal(document.getElementById('dishModal')).show();
+}
+
+// 🛑 STOP ALARM AND FETCH NEW DATA
+function stopAlarmAndRefreshOrders() {
+    var audio = document.getElementById('orderNotificationSound');
+    if(audio) {
+        audio.pause();
+        audio.currentTime = 0;
+    }
+    document.getElementById('newOrderAlarmOverlay').classList.add('d-none');
+    isAlarmRinging = false;
+    
+    fetchOrdersSilently();
+}
+
+// 🔄 SILENT BACKGROUND FETCH FOR ORDERS & STATS
+function fetchOrdersSilently() {
+    fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(res => res.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const newDesktopTable = doc.getElementById('orders-desktop-refresh-zone');
+            if(newDesktopTable) {
+                document.getElementById('orders-desktop-refresh-zone').innerHTML = newDesktopTable.innerHTML;
+            }
+            
+            const newMobileCards = doc.getElementById('orders-mobile-refresh-zone');
+            if(newMobileCards) {
+                document.getElementById('orders-mobile-refresh-zone').innerHTML = newMobileCards.innerHTML;
+            }
+            
+            const newStats = doc.getElementById('stats-refresh-zone');
+            if(newStats) {
+                document.getElementById('stats-refresh-zone').innerHTML = newStats.innerHTML;
+            }
+
+            attachRowListeners(); 
+        })
+        .catch(err => console.log("AJAX update error:", err));
+}
+
+// 🔄 CONSTANT ORDER CHECKER
+function checkIncomingOrders(){
+    fetch("{% url 'check_new_orders_api' %}")
+    .then(response=>response.json())
+    .then(data=>{
+        if((data.new_order===true || data.refresh_needed===true)){
+            
+            if(!isAlarmRinging && systemActive) {
+                isAlarmRinging = true; 
+                var audio = document.getElementById('orderNotificationSound');
+                if(audio) {
+                    audio.play().catch(e => {
+                        console.log("Auto-play blocked by browser. Showing visual alert anyway.");
+                    });
+                }
+                document.getElementById('newOrderAlarmOverlay').classList.remove('d-none');
+            } 
+            else if (!isAlarmRinging && !systemActive) {
+                fetchOrdersSilently();
+            }
+        }
+    })
+    .catch(error=>console.log("Watchdog error:",error));
+}
+setInterval(checkIncomingOrders, 8000);
+</script>
+{% endblock %}

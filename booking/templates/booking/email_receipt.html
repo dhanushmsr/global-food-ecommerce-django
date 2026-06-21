@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <title>Ganesha - Order Receipt</title>
+    <style>
+        body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f6fb;color:#1f2937;margin:0;padding:0}
+        .wrapper{width:100%;max-width:600px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(7,27,58,.12);border:1px solid #e5e7eb}
+        .header{background:linear-gradient(135deg,#071b3a,#0b2a55);padding:28px 25px;text-align:center;color:#fff;border-bottom:4px solid #d4af37}
+        .header h2{margin:0;font-size:26px;font-family:Georgia,serif;color:#d4af37}
+        .header p{margin:6px 0 0;font-size:14px;color:rgba(255,255,255,.75)}
+        .content{padding:30px}
+        .title{margin-top:0;color:#071b3a;font-size:20px}
+        
+        .order-meta{background:#f8f9fa;border-left:4px solid #071b3a;padding:15px;margin-bottom:20px;border-radius:8px}
+        .order-meta p{margin:0 0 8px;font-size:14px;}
+        .label{color:#071b3a}
+
+        .status-alert { padding: 15px; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 25px; border: 1px solid transparent; }
+        .status-processing { background: #fff9db; color: #856404; border-color: #ffeeba; }
+        .status-ordered { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .status-failed { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+
+        .table{width:100%;border-collapse:collapse;margin-bottom:25px}
+        .table th{text-align:left;padding:10px;border-bottom:2px solid #d4af37;color:#071b3a;font-size:12px;text-transform:uppercase}
+        .table td{padding:12px 10px;border-bottom:1px solid #e5e7eb;font-size:14px}
+        .total-row td{font-weight:bold;color:#071b3a;font-size:16px;border-top:2px solid #d4af37}
+        .total-row .amount{color:#d4af37;font-size:20px}
+        .note{font-size:13px;color:#6b7280;line-height:1.5;margin-bottom:0}
+        .footer{background:#071b3a;padding:20px;text-align:center;font-size:12px;color:rgba(255,255,255,.7);border-top:4px solid #d4af37}
+        .footer strong{color:#d4af37}
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <h2>Ganesha Restaurant</h2>
+            <p>Vielen Dank für Ihre Bestellung! / Thank you for your order!</p>
+        </div>
+
+        <div class="content">
+            <h3 class="title">Bestellbestätigung #{{ order.id }}</h3>
+
+            <div class="order-meta">
+                <p><strong class="label">Kunde / Client:</strong> {{ order.user.first_name }} {{ order.user.last_name }}</p>
+                <p><strong class="label">Fulfillment:</strong> {{ order.get_order_type_display }}</p>
+                <p><strong class="label">Zahlung / Payment:</strong> {{ order.get_payment_method_display }}</p>
+                <p><strong class="label">Adresse / Address:</strong> {{ order.delivery_address|default:"N/A" }}</p>
+            </div>
+
+            {% if order.status in 'verifying,processing' %}
+                <div class="status-alert status-processing">
+                    ⏳ STATUS: {% if lang == 'de' %}IN BEARBEITUNG / ZAHLUNGSMETRIK PRÜFEN{% else %}PROCESSING / VERIFYING TRANSACTION PHASE{% endif %}
+                </div>
+            {% elif order.status in 'ordered,preparing,delivered,completed' %}
+                <div class="status-alert status-ordered">
+                    ✅ STATUS: {% if lang == 'de' %}BESTELLUNG ERFOLGREICH BESTÄTIGT{% else %}ORDER CONFIRMED & ACCEPTED SUCCESSFULLY{% endif %}
+                    {% if order.status == 'delivered' %}<br><span style="font-size:12px; font-weight:normal;">🚚 Out for Delivery / Unterwegs</span>{% endif %}
+                </div>
+            {% else %}
+                <div class="status-alert status-failed">
+                    ❌ STATUS: {% if lang == 'de' %}SPEICHERUNG FEHLGESCHLAGEN / STORNIERT{% else %}TRANSACTION ABORTED / ORDER CANCELLED{% endif %}
+                </div>
+            {% endif %}
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Produkt / Item</th>
+                        <th style="text-align:center;">Anzahl / Qty</th>
+                        <th style="text-align:right;">Preis / Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td><strong>{{ item.food_item_name }}</strong></td>
+                        <td style="text-align:center;color:#6b7280;">x{{ item.quantity }}</td>
+                        <td style="text-align:right;font-weight:600;">€{{ item.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="2" style="text-align:right;padding-top:20px;">Gesamtsumme / Grand Total:</td>
+                        <td class="amount" style="text-align:right;padding-top:20px;">€{{ order.final_amount }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p class="note">
+                Falls Sie Fragen zu Ihrer Bestellung haben, erreichen Sie uns jederzeit. Guten Appetit!
+            </p>
+        </div>
+
+        <div class="footer">
+            <p style="margin:0 0 5px;"><strong>Ganesha Restaurant</strong> — Munderkingen</p>
+            <p style="margin:0;">&copy; 2026 Ganesha Portal. Alle Rechte vorbehalten.</p>
+        </div>
+    </div>
+</body>
+</html>

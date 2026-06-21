@@ -1,0 +1,626 @@
+{% extends 'booking/base.html' %}
+{% load dict_filters %}
+{% load static %}
+{% block content %}
+
+<style>
+
+.gold-text{color:#d4af37;}
+.blue-text{color:#071b3a;}
+.gold-border{border-color:#d4af37!important;}
+.menu-card,.manager-card{transition:.25s ease;}
+.menu-card:hover,.manager-card:hover{transform:translateY(-4px);}
+.menu-img{height:220px;object-fit:cover;transition:.35s ease;}
+.menu-card:hover .menu-img{transform:scale(1.05);}
+.btn-blue{background:#071b3a;color:#d4af37;border:1px solid #d4af37;}
+.btn-blue:hover{background:#d4af37;color:#071b3a;}
+.btn-gold{background:#d4af37;color:#071b3a;border:1px solid #d4af37;}
+.btn-gold:hover{background:#071b3a;color:#d4af37;}
+.category-title-node{color:#071b3a;border-left:5px solid #d4af37;padding-left:14px;}
+.form-control:focus,.form-select:focus{border-color:#d4af37;box-shadow:0 0 0 .2rem rgba(212,175,55,.25);}
+.custom-toast{border:1px solid #d4af37;background:#071b3a!important;color:#d4af37;}
+.floating-cart-btn{
+    position:fixed;
+    bottom:40px;
+    right:40px;
+    width:65px;
+    height:65px;
+    border-radius:50%;
+    z-index:1040;
+    transition:transform .3s cubic-bezier(.175,.885,.32,1.275);
+}
+.floating-cart-btn:hover{transform:scale(1.1) rotate(-5deg);}
+
+/* 🚀 NEW FULL-WIDTH CAROUSEL SYSTEM */
+.home-carousel { 
+    border-radius: 1.5rem; 
+    overflow: hidden; 
+    box-shadow: 0 15px 35px rgba(7,27,58,.15); 
+    border-bottom: 4px solid #d4af37; 
+}
+.carousel-item-custom { 
+    height: 380px; 
+    background-size: cover !important; 
+    background-position: center !important; 
+    position: relative; 
+}
+.carousel-overlay { 
+    position: absolute; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background: linear-gradient(90deg, rgba(7,27,58,.95) 0%, rgba(7,27,58,.4) 60%, transparent 100%); 
+    z-index: 1;
+}
+.carousel-content { 
+    position: relative; 
+    z-index: 2; 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    padding: 4rem; 
+    color: white; 
+}
+
+.filter-bar-wrapper{top:85px;z-index:1020;border:1px solid rgba(212,175,55,.3);}
+
+/* ✨ PREMIUM INFO BAR STYLES */
+.premium-info-bar {
+    background: linear-gradient(135deg, #071b3a, #0b2a55);
+    box-shadow: 0 15px 35px rgba(7, 27, 58, 0.25);
+    border: 1px solid rgba(212, 175, 55, 0.3) !important;
+}
+.timer-digit-box {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    min-width: 45px;
+    display: inline-block;
+}
+.transition-hover:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+.premium-info-card{background:linear-gradient(135deg,#fff,#fff8da);border:1px solid rgba(212,175,55,.35)!important}
+.info-glow{position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(212,175,55,.22),transparent 35%),radial-gradient(circle at 90% 70%,rgba(7,27,58,.1),transparent 35%);pointer-events:none}
+.offer-timer-box{background:rgba(255,255,255,.72);border:1px solid rgba(212,175,55,.32);box-shadow:inset 0 0 35px rgba(212,175,55,.08)}
+.timer-badge{background:linear-gradient(135deg,#071b3a,#0b2a55);color:#d4af37;box-shadow:0 8px 18px rgba(7,27,58,.18)}
+.timer-unit span{display:inline-flex;align-items:center;justify-content:center;min-width:58px;height:54px;background:#fff;border:1px solid rgba(7,27,58,.12);border-radius:16px;color:#071b3a;font-size:1.65rem;box-shadow:0 10px 20px rgba(7,27,58,.08)}
+.timer-unit small{display:block;text-align:center;font-size:.65rem;letter-spacing:1px;color:#071b3a;margin-top:.35rem;opacity:.7}
+.timer-dot{font-size:1.8rem;color:#d4af37;margin:0 .4rem 1.2rem}
+.vertical-divider{width:2px;height:150px;background:linear-gradient(to bottom,transparent,rgba(7,27,58,.25),transparent)}
+.timing-box{background:linear-gradient(135deg,rgba(7,27,58,.04),rgba(212,175,55,.1));border:1px solid rgba(212,175,55,.3)}
+.time-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;background:#fff;border:1px solid rgba(7,27,58,.08);border-radius:50rem;padding:.7rem .9rem;box-shadow:0 8px 20px rgba(7,27,58,.06)}
+.day-pill{background:linear-gradient(135deg,#d4af37,#ffe38b);color:#071b3a;font-weight:800;border-radius:50rem;padding:.45rem .9rem;font-size:.75rem;text-transform:uppercase;white-space:nowrap}
+.time-text{color:#071b3a;font-weight:800;font-family:monospace;text-align:end}
+.time-text span{color:#d4af37;margin:0 .35rem}
+@media(max-width:576px){
+.timer-unit span{min-width:48px;height:48px;font-size:1.35rem}
+.timer-dot{margin:0 .25rem 1.2rem}
+.time-row{border-radius:1.2rem;flex-direction:column;text-align:center}
+.time-text{text-align:center;font-size:.9rem}
+}
+
+/* 📱 MOBILE RESPONSIVENESS */
+@media(max-width:991px){
+    .floating-cart-btn{bottom:25px;right:25px;width:58px;height:58px;}
+}
+@media(max-width:767px){
+    .carousel-item-custom { height: 210px; }
+    .carousel-overlay { background: rgba(7,27,58,.75); } 
+    .carousel-content { padding: 1.5rem; text-align: center; align-items: center; }
+    .carousel-content h1 { font-size: 1.8rem !important; }
+    .carousel-content p { font-size: 0.95rem !important; }
+    
+    .menu-img{height:190px;}
+    .filter-bar-wrapper{position:static!important;}
+}
+@media(max-width:575px){
+    .menu-img{height:175px;}
+    .card-body{padding:1.25rem!important;}
+    .timer-digit-box { min-width: 40px; font-size: 1.25rem !important; }
+}
+</style>
+
+<!-- 🎡 FULL WIDTH AUTO-SWIPING PROMO CAROUSEL -->
+<div class="container-fluid px-0 mb-4">
+    <div id="promoCarousel" class="carousel slide home-carousel" data-bs-ride="carousel" data-bs-interval="3000">
+        
+        <div class="carousel-indicators mb-1">
+            <button type="button" data-bs-target="#promoCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
+            {% for offer in universal_offers %}
+                <button type="button" data-bs-target="#promoCarousel" data-bs-slide-to="{{ forloop.counter }}"></button>
+            {% endfor %}
+        </div>
+
+        <div class="carousel-inner">
+            <div class="carousel-item active carousel-item-custom" style="background: url('{% static 'booking/images/food-banner.jpg' %}');">
+                <div class="carousel-overlay"></div>
+                <div class="carousel-content">
+                    <span class="badge btn-gold mb-3 fs-6 rounded-pill px-3 shadow-sm" style="width: fit-content;">
+                        <i class="bi bi-stars me-1"></i>{% if lang == 'de' %}Spezialangebot{% else %}Special Offer{% endif %}
+                    </span>
+                    <h1 class="display-3 fw-bold gold-text mb-2" style="font-family:Georgia,serif;text-shadow:0 5px 20px #000;">GaneSha Specials</h1>
+                    <p class="fs-5 mb-0 fw-semibold">{% if lang == 'de' %}Sri Lanka & Indien Premium K&uuml;che{% else %}Sri Lankan & Indian Premium Cuisine{% endif %}</p>
+                </div>
+            </div>
+
+            {% for offer in universal_offers %}
+            <div class="carousel-item carousel-item-custom" style="background: url('{% if forloop.counter0|divisibleby:2 %}{% static 'booking/images/briyani.jpg' %}{% else %}{% static 'booking/images/delivery.jpg' %}{% endif %}');">
+                <div class="carousel-overlay"></div>
+                <div class="carousel-content">
+                    <span class="badge bg-danger text-white mb-2 px-3 py-2 fs-6 rounded-pill shadow-sm" style="width: fit-content;">
+                        <i class="bi bi-tags-fill me-1"></i>{{ offer.discount_percentage }}% OFF
+                    </span>
+                    <h1 class="display-3 fw-bold gold-text mb-2 text-uppercase" style="font-family:Georgia,serif; text-shadow:0 5px 20px #000;">
+                        {{ offer.code }}
+                    </h1>
+                    <p class="fs-5 mb-1 fw-bold text-white">
+                        {% if lang == 'de' %}Mindestbestellwert: &euro;{{ offer.min_order_amount }}{% else %}Min. Spend: &euro;{{ offer.min_order_amount }}{% endif %}
+                    </p>
+                    {% if offer.applicable_category %}
+                    <p class="small text-white-50 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>{% if lang == 'de' %}Nur f&uuml;r{% else %}Only for{% endif %}: {{ offer.applicable_category.name_de }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <button class="carousel-control-prev" type="button" data-bs-target="#promoCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#promoCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+<!-- 🕒 PREMIUM INFO BAR (Timer + Opening Hours) -->
+<div class="row justify-content-center mb-5 mt-4">
+<div class="col-lg-11 col-12 px-2 px-lg-0">
+<div class="card border-0 rounded-5 overflow-hidden position-relative shadow-lg premium-info-card">
+<div class="info-glow"></div>
+<div class="card-body p-3 p-md-4 position-relative">
+<div class="row g-4 align-items-center">
+
+<div class="col-lg-5">
+<div class="h-100 rounded-4 p-3 p-md-4 offer-timer-box text-center text-lg-start">
+<span class="badge timer-badge rounded-pill px-3 py-2 small text-uppercase mb-3">
+<i class="bi bi-lightning-charge-fill me-1"></i>{% if lang == 'de' %}Schnell bestellen{% else %}Hurry! Order Quickly{% endif %}
+</span>
+<h5 class="fw-bold blue-text mb-1" style="font-family:Georgia,serif;">
+{% if lang == 'de' %}Angebote enden bald{% else %}Offers Ending Soon{% endif %}
+</h5>
+<p class="small text-muted mb-3">
+{% if lang == 'de' %}Bestellen Sie jetzt schnell und sichern Sie sich den heutigen Rabatt.{% else %}Order quickly now and grab today’s special discount before time runs out.{% endif %}
+</p>
+<div id="promo-timer" class="d-flex justify-content-center justify-content-lg-start align-items-center font-monospace fw-bold">
+<div class="timer-unit">
+<span id="hours">00</span>
+<small>HRS</small>
+</div>
+<span class="timer-dot">:</span>
+<div class="timer-unit">
+<span id="minutes">00</span>
+<small>MIN</small>
+</div>
+<span class="timer-dot">:</span>
+<div class="timer-unit">
+<span id="seconds">00</span>
+<small>SEC</small>
+</div>
+</div>
+</div>
+</div>
+
+<div class="col-lg-1 d-none d-lg-flex justify-content-center">
+<div class="vertical-divider"></div>
+</div>
+
+<div class="col-lg-6">
+<div class="h-100 rounded-4 p-3 p-md-4 timing-box">
+<div class="d-flex align-items-center justify-content-center justify-content-lg-between flex-wrap gap-2 mb-3">
+<span class="badge bg-white blue-text border rounded-pill px-3 py-2 small text-uppercase shadow-sm">
+<i class="bi bi-door-open-fill gold-text me-1"></i>{% if lang == 'de' %}&Ouml;ffnungszeiten{% else %}Opening Hours{% endif %}
+</span>
+<span class="small fw-bold text-success">
+<i class="bi bi-check-circle-fill me-1"></i>{% if lang == 'de' %}Heute geöffnet{% else %}Open Today{% endif %}
+</span>
+</div>
+<div class="d-flex flex-column gap-2">
+<div class="time-row">
+<span class="day-pill">{% if lang == 'de' %}Mo - Sa{% else %}Mon - Sat{% endif %}</span>
+<span class="time-text">11:30 - 14:30 <span>|</span> 17:30 - 22:30</span>
+</div>
+<div class="time-row">
+<span class="day-pill">{% if lang == 'de' %}Sonntag{% else %}Sunday{% endif %}</span>
+<span class="time-text">11:30 - 22:30</span>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+
+{% if user.is_staff %}
+<!-- MANAGER DASHBOARD -->
+<div class="card shadow-lg border-0 rounded-4 mb-5 manager-card">
+    <div class="card-body p-4">
+        <h4 class="fw-bold blue-text mb-4">
+            <i class="bi bi-speedometer2 gold-text me-2"></i>
+            {% if lang == 'de' %}GaneSha Verwalter-Dashboard{% else %}GaneSha Manager Dashboard{% endif %}
+        </h4>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="{% url 'hotel_management' %}" class="btn btn-blue w-100 rounded-pill shadow">
+                    <i class="bi bi-clipboard-check me-1"></i>
+                    {% if lang == 'de' %}K&uuml;chenbestellungen{% else %}Kitchen Orders{% endif %}
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'hotel_management' %}" class="btn btn-gold w-100 rounded-pill shadow">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    {% if lang == 'de' %}Men&uuml; hinzuf&uuml;gen{% else %}Add Menu{% endif %}
+                </a>
+            </div>
+            <div class="col-md-3">
+                <form method="POST" action="{% url 'add_category_frontend' %}" class="input-group shadow-sm">
+                    {% csrf_token %}
+                    <input type="text" name="name_en" class="form-control" placeholder="{% if lang == 'de' %}Kat (EN){% else %}Cat (EN){% endif %}" required>
+                    <input type="text" name="name_de" class="form-control" placeholder="{% if lang == 'de' %}Kat (DE){% else %}Cat (DE){% endif %}" required>
+                    <button class="btn btn-blue" type="submit"><i class="bi bi-plus-lg"></i></button>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <form method="POST" action="{% url 'add_coupon_frontend' %}" class="input-group shadow-sm">
+                    {% csrf_token %}
+                    <input type="text" name="code" class="form-control" placeholder="{% if lang == 'de' %}Gutschein{% else %}Coupon{% endif %}" required>
+                    <input type="number" name="discount_percentage" class="form-control" placeholder="%" required>
+                    <button class="btn btn-gold" type="submit"><i class="bi bi-plus-lg"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 🔍 FILTER BAR -->
+<div class="filter-bar-wrapper sticky-top shadow-sm rounded-4 p-3 mb-5 bg-white">
+    <div class="row g-2 align-items-center">
+        <div class="col-12 col-md-4">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" id="searchInput" class="form-control border-start-0 bg-light" placeholder="{% if lang == 'de' %}Gericht suchen...{% else %}Search dishes...{% endif %}">
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <select id="categoryFilter" class="form-select border-light bg-light fw-semibold">
+                <option value="all">{% if lang == 'de' %}Alle Kategorien{% else %}All Categories{% endif %}</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}">{% if lang == 'de' %}{{ cat.name_de }}{% else %}{{ cat.name_en }}{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <select id="dietFilter" class="form-select border-light bg-light fw-semibold">
+                <option value="all">{% if lang == 'de' %}Alle (Veg/Non-Veg){% else %}All (Veg/Non-Veg){% endif %}</option>
+                <option value="VEG">Vegetarian</option>
+                <option value="VEGAN">Vegan</option>
+                <option value="NON_VEG">Non-Veg</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-2">
+            <select id="priceSort" class="form-select border-light bg-light fw-semibold">
+                <option value="none">{% if lang == 'de' %}Sortieren{% else %}Sort by{% endif %}</option>
+                <option value="low">{% if lang == 'de' %}Preis: Aufsteigend{% else %}Price: Low to High{% endif %}</option>
+                <option value="high">{% if lang == 'de' %}Preis: Absteigend{% else %}Price: High to Low{% endif %}</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div id="menu-start"></div>
+
+<!-- 🍽️ DYNAMIC MENU ITEMS -->
+{% for category in categories %}
+<div class="category-section-wrapper" data-category-id="{{ category.id }}">
+    <h2 class="fw-bold mb-4 mt-2 category-title-node">
+        {% if lang == 'de' %}{{ category.name_de }}{% else %}{{ category.name_en }}{% endif %}
+    </h2>
+
+    <div class="row g-4 category-products-row mb-5">
+        {% for item in menu_items %}
+            {% if item.category == category %}
+            <div class="col-lg-4 col-md-6 food-card-container"
+                 data-name="{% if lang == 'de' %}{{ item.name_de|lower }}{% else %}{{ item.name_en|lower }}{% endif %}"
+                 data-category="{{ item.category.id }}"
+                 data-diet="{{ item.diet_type }}"
+                 data-price="{{ item.price|stringformat:'f' }}">
+
+                <div class="card h-100 border-0 shadow-lg rounded-4 overflow-hidden menu-card">
+                    {% if item.image %}
+                    <div class="overflow-hidden">
+                        <img src="{{ item.image.url }}" class="card-img-top menu-img" alt="{{ item.name_en }}">
+                    </div>
+                    {% endif %}
+
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <h5 class="fw-bold blue-text mb-0">
+                                {% if lang == 'de' %}{{ item.name_de }}{% else %}{{ item.name_en }}{% endif %}
+                            </h5>
+
+                            <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+                                {% if "ice cream" in category.name_en|lower or "dessert" in category.name_en|lower %}
+                                    <span class="badge rounded-pill border border-danger-subtle text-danger bg-danger-subtle">
+                                        <i class="bi bi-cake2-fill me-1"></i>{% if lang == 'de' %}DESSERT{% else %}DESSERT{% endif %}
+                                    </span>
+                                {% elif "juice" in category.name_en|lower or "beverage" in category.name_en|lower or "drink" in category.name_en|lower %}
+                                    <span class="badge rounded-pill border border-info-subtle text-info bg-info-subtle">
+                                        <i class="bi bi-cup-straw me-1"></i>{% if lang == 'de' %}GETR&Auml;NK{% else %}DRINK{% endif %}
+                                    </span>
+                                {% endif %}
+
+                                {% if item.diet_type == 'VEG' %}
+                                    <span class="badge rounded-pill bg-success text-white">
+                                        <i class="bi bi-circle-fill me-1" style="font-size:.65rem;"></i>VEG
+                                    </span>
+                                {% elif item.diet_type == 'VEGAN' %}
+                                    <span class="badge rounded-pill bg-success text-white">
+                                        <i class="bi bi-leaf-fill me-1"></i>VEGAN
+                                    </span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-white text-danger border border-danger">
+                                        <i class="bi bi-circle-fill me-1" style="font-size:.65rem;"></i>{% if lang == 'de' %}FLEISCH{% else %}NON VEG{% endif %}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <p class="text-muted small flex-grow-1 mt-3">
+                            {% if lang == 'de' %}{{ item.description_de }}{% else %}{{ item.description_en }}{% endif %}
+                        </p>
+
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3 gap-2 flex-wrap">
+                            <span class="fs-4 fw-bold gold-text">&euro;{{ item.price }}</span>
+
+                            <div class="text-end">
+                                {% if user.is_staff %}
+                                <a href="{% url 'hotel_management' %}" class="btn btn-outline-dark btn-sm rounded-pill me-1">
+                                    <i class="bi bi-pencil-square me-1"></i>
+                                    {% if lang == 'de' %}Bearbeiten{% else %}Edit{% endif %}
+                                </a>
+                                {% endif %}
+
+                                {% if not user.is_staff %}
+                                <button type="button" class="btn btn-blue btn-sm rounded-pill px-3 add-to-cart-btn"
+                                        data-item-id="{{ item.id }}"
+                                        data-item-name="{% if lang == 'de' %}{{ item.name_de }}{% else %}{{ item.name_en }}{% endif %}">
+                                    <i class="bi bi-cart-plus me-1"></i>
+                                    <span class="btn-text-label">{% if lang == 'de' %}In den Warenkorb{% else %}Add Cart{% endif %}</span>
+                                    <span class="product-counter-badge badge bg-light text-dark ms-1 rounded-circle {% if item.id not in cart_quantities %}d-none{% endif %}">
+                                        {% if item.id in cart_quantities %}{{ cart_quantities|get_item:item.id }}{% else %}0{% endif %}
+                                    </span>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+
+<!-- 🛒 FLOATING CART BUTTON -->
+{% if user.is_authenticated and not user.is_staff %}
+<a href="{% url 'view_cart' %}" class="btn btn-gold shadow-lg floating-cart-btn d-none d-lg-flex align-items-center justify-content-center text-decoration-none">
+    <i class="bi bi-cart3 blue-text" style="font-size:1.8rem;"></i>
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" id="floating-cart-badge" style="font-size:.85rem;padding:.35em .65em;">
+        {{ cart_total_count|default:0 }}
+    </span>
+</a>
+{% endif %}
+
+<!-- TOAST NOTIFICATION -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080;margin-bottom:80px;">
+    <div id="cartToast" class="toast align-items-center custom-toast border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex w-100 align-items-center justify-content-between p-2">
+            <div class="toast-body fw-bold p-0 d-flex align-items-center ms-2" id="toastMessage">
+                <i class="bi bi-check-circle-fill text-success me-2 fs-5"></i>
+                <span class="text-truncate d-inline-block" style="max-width:140px;">Item added!</span>
+            </div>
+            <div class="d-flex align-items-center">
+                <a href="{% url 'view_cart' %}" class="btn btn-sm btn-gold rounded-pill fw-bold px-3 py-1 me-2 shadow-sm text-nowrap">
+                    {% if lang == 'de' %}Warenkorb &rarr;{% else %}Cart &rarr;{% endif %}
+                </a>
+                <button type="button" class="btn-close btn-close-white me-1" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+    const searchInput=document.getElementById("searchInput");
+    const catFilter=document.getElementById("categoryFilter");
+    const dietFilter=document.getElementById("dietFilter");
+    const priceSort=document.getElementById("priceSort");
+
+    function applyFilters(){
+        const searchTerm=searchInput ? searchInput.value.toLowerCase().trim() : "";
+        const catVal=catFilter ? catFilter.value : "all";
+        const dietVal=dietFilter ? dietFilter.value : "all";
+        const sortVal=priceSort ? priceSort.value : "none";
+
+        document.querySelectorAll(".category-section-wrapper").forEach(function(wrapper){
+            const row=wrapper.querySelector(".category-products-row");
+            if(!row) return;
+
+            let visibleCount=0;
+            let cards=Array.from(row.querySelectorAll(".food-card-container"));
+
+            cards.forEach(function(card){
+                const name=card.getAttribute("data-name") || "";
+                const cat=card.getAttribute("data-category") || "";
+                const diet=card.getAttribute("data-diet") || "";
+                const matchesSearch=name.includes(searchTerm);
+                const matchesCat=catVal==="all" || catVal===cat;
+                const matchesDiet=dietVal==="all" || dietVal===diet;
+
+                if(matchesSearch && matchesCat && matchesDiet){
+                    card.style.setProperty("display","","important");
+                    visibleCount++;
+                }else{
+                    card.style.setProperty("display","none","important");
+                }
+            });
+
+            if(visibleCount===0){
+                wrapper.style.setProperty("display","none","important");
+            }else{
+                wrapper.style.setProperty("display","","important");
+
+                if(sortVal!=="none"){
+                    cards.sort(function(a,b){
+                        const priceA=parseFloat(a.getAttribute("data-price")) || 0;
+                        const priceB=parseFloat(b.getAttribute("data-price")) || 0;
+                        return sortVal==="low" ? priceA-priceB : priceB-priceA;
+                    });
+                    cards.forEach(function(card){
+                        row.appendChild(card);
+                    });
+                }
+            }
+        });
+    }
+
+    if(searchInput) searchInput.addEventListener("input",applyFilters);
+    if(catFilter) catFilter.addEventListener("change",applyFilters);
+    if(dietFilter) dietFilter.addEventListener("change",applyFilters);
+    if(priceSort) priceSort.addEventListener("change",applyFilters);
+    applyFilters();
+
+    const toastEl=document.getElementById("cartToast");
+    let toastInstance=null;
+
+    if(toastEl && typeof bootstrap!=="undefined"){
+        toastInstance=new bootstrap.Toast(toastEl,{delay:4000});
+    }
+
+    document.querySelectorAll(".add-to-cart-btn").forEach(function(button){
+        button.addEventListener("click",function(e){
+            e.preventDefault();
+
+            const itemId=this.getAttribute("data-item-id");
+            const itemName=this.getAttribute("data-item-name");
+            const targetUrl="/cart/add/"+itemId+"/?ajax=true";
+            const textLabel=this.querySelector(".btn-text-label");
+            const productBadge=this.querySelector(".product-counter-badge");
+
+            if(!itemId || !textLabel || !productBadge) return;
+
+            const originalText=textLabel.innerHTML;
+            this.disabled=true;
+            textLabel.innerHTML="{% if lang == 'de' %}Wird hinzugef&uuml;gt...{% else %}Adding...{% endif %}";
+
+            fetch(targetUrl,{
+                method:"GET",
+                headers:{"X-Requested-With":"XMLHttpRequest"}
+            })
+            .then(function(response){
+                return response.json();
+            })
+            .then(data=>{
+                if(data.success){
+                    this.disabled=false;
+                    textLabel.innerHTML=originalText;
+
+                    let currentCount=parseInt(productBadge.textContent) || 0;
+                    currentCount+=1;
+                    productBadge.textContent=currentCount;
+                    productBadge.classList.remove("d-none");
+
+                    this.classList.replace("btn-blue","btn-gold");
+                    setTimeout(()=>this.classList.replace("btn-gold","btn-blue"),800);
+
+                    document.querySelectorAll(".badge").forEach(function(badge){
+                        if(badge.id==="cart-badge-counter" || badge.id==="floating-cart-badge"){
+                            const numberNode=badge.querySelector(".badge-number-node");
+                            if(numberNode){
+                                numberNode.textContent=data.cart_total;
+                            }else{
+                                badge.textContent=data.cart_total;
+                            }
+                            if(data.cart_total>0){
+                                badge.classList.remove("d-none");
+                            }
+                        }else if(
+                            badge.parentElement &&
+                            badge.parentElement.getAttribute("href") &&
+                            badge.parentElement.getAttribute("href").includes("cart")
+                        ){
+                            badge.textContent=data.cart_total;
+                        }
+                    });
+
+                    if(toastInstance){
+                        const toastMsg=document.querySelector("#toastMessage span");
+                        if(toastMsg) toastMsg.innerText=itemName;
+                        toastInstance.show();
+                    }
+                }else{
+                    this.disabled=false;
+                    textLabel.innerHTML=originalText;
+                }
+            })
+            .catch(error=>{
+                console.error("AJAX Cart error:",error);
+                textLabel.innerHTML=originalText;
+                this.disabled=false;
+            });
+        });
+    });
+
+    const hoursEl=document.getElementById("hours");
+    const minutesEl=document.getElementById("minutes");
+    const secondsEl=document.getElementById("seconds");
+
+    function updateCountdown(){
+        if(!hoursEl || !minutesEl || !secondsEl) return;
+
+        const now=new Date();
+        const countdownDate=new Date();
+        countdownDate.setHours(23,59,59,0);
+
+        let distance=countdownDate.getTime()-now.getTime();
+
+        if(distance<0){
+            distance=0;
+        }
+
+        const hours=Math.floor((distance%(1000*60*60*24))/(1000*60*60));
+        const minutes=Math.floor((distance%(1000*60*60))/(1000*60));
+        const seconds=Math.floor((distance%(1000*60))/1000);
+
+        hoursEl.innerHTML=String(hours).padStart(2,"0");
+        minutesEl.innerHTML=String(minutes).padStart(2,"0");
+        secondsEl.innerHTML=String(seconds).padStart(2,"0");
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown,1000);
+});
+</script>
+
+{% endblock %}

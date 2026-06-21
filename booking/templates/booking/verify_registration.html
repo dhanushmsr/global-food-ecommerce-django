@@ -1,0 +1,74 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+.gold-text{color:#d4af37}
+.blue-text{color:#071b3a}
+.verify-header{background:linear-gradient(135deg,#071b3a,#0b2a55)}
+.verify-card{animation:verifyFade .35s ease;transition:.25s}
+.verify-card:hover{transform:translateY(-3px)}
+
+/* Optimized brand logo frame style */
+.brand-logo-frame {
+    width: 85px;
+    height: 85px;
+    object-fit: contain;
+    background: #ffffff;
+    border-radius: 1.25rem;
+    padding: 6px;
+    border: 2px solid #d4af37;
+    box-shadow: 0 8px 20px rgba(212,175,55,0.25);
+}
+
+.input-group:focus-within{box-shadow:0 0 0 .2rem rgba(212,175,55,.25)!important}
+.otp-input{letter-spacing:8px;padding-left:14px}
+.btn-blue{background:#071b3a;color:#d4af37;border:1px solid #d4af37;transition:.25s}
+.btn-blue:hover{background:#d4af37;color:#071b3a;transform:translateY(-2px)}
+@keyframes verifyFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+<div class="row justify-content-center align-items-center my-5">
+    <div class="col-lg-5 col-md-7">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden bg-white verify-card">
+            <div class="verify-header text-white text-center p-4">
+                
+                <div class="text-center mb-3">
+                    <img src="{% static 'booking/images/logo_new1.png' %}" alt="Ganesha Brand Logo" class="img-fluid brand-logo-frame">
+                </div>
+                
+                <h4 class="fw-bold gold-text mb-1" style="font-family:Georgia,serif;">
+                    {% if lang == 'de' %}Konto Verifizierung{% else %}Account Verification{% endif %}
+                </h4>
+                <p class="small mb-0 text-white-50">
+                    {% if lang == 'de' %}Geben Sie den Code ein, der an Ihre E-Mail gesendet wurde.{% else %}Enter the security code sent to your Email.{% endif %}
+                </p>
+            </div>
+            <div class="card-body p-4">
+                {% if error %}
+                <div class="alert alert-danger border-0 rounded-4 py-2 small text-center fw-semibold shadow-sm mb-3">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}
+                </div>
+                {% endif %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold blue-text">
+                            {% if lang == 'de' %}Verifizierungscode (OTP){% else %}Verification Code (OTP){% endif %}
+                        </label>
+                        <div class="input-group shadow-sm rounded-pill overflow-hidden border mb-2">
+                            <span class="input-group-text bg-light border-0 gold-text"><i class="bi bi-shield-check-fill"></i></span>
+                            <input type="text" name="email_otp" class="form-control border-0 text-center fw-bold font-monospace fs-4 otp-input" placeholder="000000" maxlength="6" required autofocus>
+                        </div>
+                        <small class="text-muted d-block text-center mt-1">
+                            {% if lang == 'de' %}Bitte ueberpruefen Sie Ihren E-Mail-Posteingang oder Spam-Ordner.{% else %}Please check your email inbox or spam folder.{% endif %}
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-blue w-100 rounded-pill fw-bold py-3 shadow text-uppercase">
+                        <i class="bi bi-check-circle-fill me-1"></i>{% if lang == 'de' %}Code verifizieren & Aktivieren{% else %}Verify Code & Activate{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

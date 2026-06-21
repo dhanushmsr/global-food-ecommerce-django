@@ -1,0 +1,149 @@
+{% extends 'booking/base.html' %}
+{% block content %}
+
+<style>
+    .gold-blue-header{background:linear-gradient(135deg,#071b3a,#0b2a55);}
+    .gold-text{color:#d4af37;}
+    .gold-border{border-color:#d4af37!important;}
+    .ui-card{transition:.3s ease;}
+    .ui-card:hover{transform:translateY(-4px);}
+    .form-control:focus,.form-select:focus{border-color:#d4af37;box-shadow:0 0 0 .2rem rgba(212,175,55,.25);}
+    .icon-box{width:78px;height:78px;background:#d4af37;color:#071b3a;}
+    .blue-addon{background:#071b3a;color:#d4af37;border-color:#071b3a;}
+    .gold-btn{background:#071b3a;color:#d4af37;border:1px solid #d4af37;transition:.3s ease;}
+    .gold-btn:hover{background:#d4af37;color:#071b3a;transform:translateY(-2px);}
+</style>
+
+<div class="row justify-content-center my-5">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card border-0 shadow-lg rounded-5 overflow-hidden ui-card">
+            <div class="gold-blue-header text-white text-center p-4">
+                <div class="icon-box rounded-circle d-inline-flex align-items-center justify-content-center shadow mb-3">
+                    <i class="bi bi-basket2-fill fs-1"></i>
+                </div>
+                <h3 class="fw-bold mb-1 gold-text" style="font-family:Georgia,serif;">
+                    {% if item %}
+                        <i class="bi bi-pencil-square me-1"></i>
+                        {% if lang == 'de' %}Speise bearbeiten{% else %}Edit Menu Item{% endif %}
+                    {% else %}
+                        <i class="bi bi-plus-circle-fill me-1"></i>
+                        {% if lang == 'de' %}Neue Speise hinzufügen{% else %}Add New Dish{% endif %}
+                    {% endif %}
+                </h3>
+                <p class="mb-0 text-white-50">
+                    {% if lang == 'de' %}GaneSha Menü-Verwaltung{% else %}GaneSha Menu Management{% endif %}
+                </p>
+            </div>
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-primary">
+                                {% if lang == 'de' %}Name der Speise (Deutsch){% else %}Dish Name (German){% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text blue-addon"><i class="bi bi-translate"></i></span>
+                                <input type="text" name="name_de" class="form-control" value="{{ item.name_de|default:'' }}" placeholder="{% if lang == 'de' %}z.B. Butter Chicken{% else %}e.g. Butter Chicken{% endif %}" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-primary">
+                                {% if lang == 'de' %}Name der Speise (Englisch){% else %}Dish Name (English){% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text blue-addon"><i class="bi bi-fonts"></i></span>
+                                <input type="text" name="name_en" class="form-control" value="{{ item.name_en|default:'' }}" placeholder="{% if lang == 'de' %}z.B. Butter Chicken{% else %}e.g. Butter Chicken{% endif %}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-primary">
+                                {% if lang == 'de' %}Steuerklasse / MwSt.{% else %}Tax Allocation / VAT{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text blue-addon"><i class="bi bi-cash-coin"></i></span>
+                                <select name="item_type" class="form-select fw-semibold" required>
+                                    <option value="FOOD" {% if item.item_type == 'FOOD' or not item %}selected{% endif %}>
+                                        {% if lang == 'de' %}Speise / Essen (7% MwSt.){% else %}Food Items (7% MwSt.){% endif %}
+                                    </option>
+                                    <option value="BEVERAGE" {% if item.item_type == 'BEVERAGE' %}selected{% endif %}>
+                                        {% if lang == 'de' %}Getränk (19% MwSt.){% else %}Beverages (19% MwSt.){% endif %}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-primary">
+                                {% if lang == 'de' %}Klassifizierung / Ernährungsform{% else %}Classification / Diet Type{% endif %}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text blue-addon"><i class="bi bi-tags-fill"></i></span>
+                                <select name="diet_type" class="form-select" required>
+                                    <option value="VEG" {% if item.diet_type == 'VEG' %}selected{% endif %}>
+                                        {% if lang == 'de' %}Vegetarisch{% else %}Vegetarian{% endif %}
+                                    </option>
+                                    <option value="NON_VEG" {% if item.diet_type == 'NON_VEG' %}selected{% endif %}>
+                                        {% if lang == 'de' %}Nicht-Vegetarisch{% else %}Non-Vegetarian{% endif %}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-primary">
+                            {% if lang == 'de' %}Preis / Aktueller Preis{% else %}Price / Current Price{% endif %}
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-warning fw-bold text-dark gold-border">€</span>
+                            <input type="number" step="0.01" name="price" class="form-control fw-bold" value="{{ item.price|default:'' }}" placeholder="0.00" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-primary">
+                            {% if lang == 'de' %}Beschreibung (Deutsch){% else %}Description (German){% endif %}
+                        </label>
+                        <textarea name="description_de" class="form-control" rows="3" placeholder="{% if lang == 'de' %}Beschreibung auf Deutsch eingeben...{% else %}Enter description in German...{% endif %}">{{ item.description_de|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-primary">
+                            {% if lang == 'de' %}Beschreibung (Englisch){% else %}Description (English){% endif %}
+                        </label>
+                        <textarea name="description_en" class="form-control" rows="3" placeholder="{% if lang == 'de' %}Beschreibung auf Englisch eingeben...{% else %}Enter description in English...{% endif %}">{{ item.description_en|default:'' }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-primary">
+                            {% if lang == 'de' %}Produktbild / Bild hochladen{% else %}Product Image / Upload Dish Image{% endif %}
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text blue-addon"><i class="bi bi-image-fill"></i></span>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                        </div>
+                        {% if item.image %}
+                        <div class="alert border gold-border mt-3 mb-0 small shadow-sm rounded-3">
+                            <i class="bi bi-folder2-open me-1 gold-text"></i>
+                            {% if lang == 'de' %}Aktuelles Bild:{% else %}Current Image:{% endif %}
+                            <a href="{{ item.image.url }}" target="_blank" class="fw-semibold text-decoration-none ms-1" style="color:#071b3a;">
+                                {{ item.image.name }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn gold-btn w-100 fw-bold py-3 rounded-pill shadow-sm text-uppercase">
+                        <i class="bi bi-save2 me-1"></i>
+                        {% if lang == 'de' %}Konfiguration Speichern{% else %}Save Item Configuration{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
